@@ -174,7 +174,6 @@ export default function Chat() {
           },
         ],
       };
-      console.log(newThread);
       setSelectedThread(newThread);
     } catch (error) {
       openNotification(

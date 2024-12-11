@@ -192,13 +192,29 @@ export default function MetadataEditorForm({
                   sourceCatalogId: string;
                 };
                 setIsDeletingRelations(relation.key);
-                await deleteRelations({
-                  projectId: relation.projectId,
-                  catalogId: relation.sourceCatalogId,
-                  schemaName: relation.source.split(".")[1],
-                  tableName: relation.source.split(".")[2],
-                  relationId: relation.key,
-                }).unwrap();
+                try {
+                  await deleteRelations({
+                    projectId: relation.projectId,
+                    catalogId: relation.sourceCatalogId,
+                    schemaName: relation.source.split(".")[1],
+                    tableName: relation.source.split(".")[2],
+                    relationId: relation.key,
+                  }).unwrap();
+
+                  openNotification(
+                    true,
+                    "Success",
+                    "Relation has been deletes successfully."
+                  )();
+                } catch (error) {
+                  openNotification(
+                    true,
+                    "Fail",
+                    (error as { data: { message: string } }).data.message,
+                    false
+                  )();
+                }
+
                 onRelationDelete(relation.key);
                 setIsDeletingRelations(undefined);
               }}

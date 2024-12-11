@@ -13,6 +13,7 @@ export type TableNodeData = {
   name: string;
   hasRelations: boolean;
   onClick: (id: string) => void;
+  useWithAI: boolean;
   columns: {
     id: string;
     name: string;
@@ -32,7 +33,8 @@ export default function TableNode({ data }: { data: TableNodeData }) {
     (column) => !column.name.startsWith("_q_")
   );
   const slice = data.hasRelations ? data.columns.length : 10;
-
+  const headerColor =
+    data.useWithAI === true ? " bg-purple-400" : " bg-slate-400";
   return (
     <>
       <div
@@ -44,11 +46,12 @@ export default function TableNode({ data }: { data: TableNodeData }) {
       >
         <header
           className={cn(
-            "text-[0.55rem] pl-2 pr-1 bg-purple-400 text-default flex items-center justify-between",
+            "text-[0.55rem] pl-2 pr-1 text-default flex items-center justify-between",
+            headerColor,
             itemHeight
           )}
         >
-          <div className="flex gap-x-1 items-center">
+          <div className="flex gap-x-1 items-center ">
             <Table2 strokeWidth={1} size={12} className="text-light" />
             <Text ellipsis title={data.name} className="w-28">
               {data.name}

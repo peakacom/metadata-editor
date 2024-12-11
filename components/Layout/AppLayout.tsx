@@ -17,7 +17,6 @@ export default function AppLayout({
 }>) {
   const router = useRouter();
   const pathname = usePathname();
-  console.log(pathname);
   const { data: projectInfo, isLoading } = useGetProjectInfoQuery({});
 
   if (isLoading) {

@@ -3,6 +3,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { metadataApi } from "./metadata";
 import apiKeyReducer from "./apiKeySlice";
+import schemaViewerReducer from "./schemaViewerSlice";
 import { partnerApi } from "./partner";
 import { aiApi } from "./ai";
 
@@ -12,6 +13,7 @@ export const store = configureStore({
     [partnerApi.reducerPath]: partnerApi.reducer,
     [aiApi.reducerPath]: aiApi.reducer,
     apiKey: apiKeyReducer,
+    schemaViewer: schemaViewerReducer,
   },
 
   middleware: (getDefaultMiddleware) =>

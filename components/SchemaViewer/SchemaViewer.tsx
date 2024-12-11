@@ -36,6 +36,13 @@ import {
 import MetadataEditorForm from "../Metadata/MetadataEditForm";
 import { cloneDeep } from "lodash";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectSelectedCatalog,
+  selectSelectedSchema,
+  setSelectedCatalog,
+  setSelectedSchema,
+} from "@/services/schemaViewerSlice";
 
 const { Search } = Input;
 type SearchProps = GetProps<typeof Input.Search>;
@@ -104,9 +111,10 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
   const [catalogs, setCatalogs] =
     useState<{ value: string; label: string }[]>();
   const [schemas, setSchemas] = useState<{ value: string; label: string }[]>();
+  const selectedCatalog = useSelector(selectSelectedCatalog);
+  const selectedSchema = useSelector(selectSelectedSchema);
+  const dispatch = useDispatch();
 
-  const [selectedCatalog, setSelectedCatalog] = useState<string>();
-  const [selectedSchema, setSelectedSchema] = useState<string>();
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedTable, setSelectedTable] = useState<
     DBMetaDataContainer | undefined
@@ -184,12 +192,6 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
             relation.targetTableName === selectedTable.metadata.tableName)
         ) {
           const relationCopy = cloneDeep(relation);
-          relationCopy.sourceCatalogName = catalogs?.find(
-            (c) => c.value === relationCopy.sourceCatalogId
-          )?.label;
-          relationCopy.targetCatalogName = catalogs?.find(
-            (c) => c.value === relationCopy.targetCatalogId
-          )?.label;
           relations.push(relationCopy);
         }
       });
@@ -320,10 +322,10 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
             (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
           }
           value={selectedCatalog}
-          options={catalogs}
+          options={catalogs?.sort((a, b) => a.label.localeCompare(b.label))}
           onChange={(value) => {
-            setSelectedCatalog(value);
-            setSelectedSchema(undefined);
+            dispatch(setSelectedCatalog(value));
+            dispatch(setSelectedSchema(undefined));
           }}
         />
         <Select
@@ -336,9 +338,9 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
           }
           value={selectedSchema}
           onChange={(value) => {
-            setSelectedSchema(value);
+            dispatch(setSelectedSchema(value));
           }}
-          options={schemas}
+          options={schemas?.sort((a, b) => a.label.localeCompare(b.label))}
         />
         {selectedCatalog && selectedSchema && (
           <Search

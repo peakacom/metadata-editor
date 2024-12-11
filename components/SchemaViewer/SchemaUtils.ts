@@ -53,6 +53,7 @@ export async function getGraphDataFromTables(
         hasRelations: edges.some(
           (edge) => edge.source === nodeId || edge.target === nodeId
         ),
+        useWithAI: table.metadata.useWithAI,
         columns,
       } as TableNodeData,
       position: { x: 0, y: 0 },
