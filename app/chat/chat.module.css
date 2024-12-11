@@ -1,0 +1,32 @@
+.prompt {
+  position: fixed;
+  width: 680px;
+  bottom: 18px;
+  z-index: 999;
+  left: 40%;
+  right: 60%;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
+    rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+}
+
+.chatHistoryNode :global .ant-tree-title {
+  flex-grow: 1;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px;
+}
+
+.chatHistoryNode :global .ant-tree-switcher {
+  display: none;
+}
+
+.question {
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+  color: #434343 !important;
+  overflow-wrap: break-word !important;
+}
+
+.questionIcon {
+  color: #597ef7 !important;
+}

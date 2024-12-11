@@ -1,0 +1,31 @@
+.headerButton {
+  background: transparent !important;
+  font-weight: normal !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.headerButton:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+.headerButton:focus {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
+.headerButtonHighlight {
+  background: rgba(255, 255, 255, 0.2) !important;
+  font-weight: 700 !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.headerButtonHighlight:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+.headerButtonHighlight:focus {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
