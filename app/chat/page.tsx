@@ -47,7 +47,7 @@ import { cloneDeep } from "lodash";
 import { format } from "sql-formatter";
 import ChatDataViewer from "@/components/Chat/ChatDataViewer";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 export default function Chat() {
   const router = useRouter();
