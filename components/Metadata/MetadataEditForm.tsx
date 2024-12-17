@@ -227,7 +227,7 @@ export default function MetadataEditorForm({
     },
   ];
 
-  const tableName = `${table?.metadata.catalogDisplayName}.${table?.metadata.schemaName}.${table?.metadata.tableName}`;
+  const tableName = `${table?.metadata.catalogQueryName}.${table?.metadata.schemaName}.${table?.metadata.tableName}`;
 
   const primaryKeysOptions = useMemo(() => {
     if (!table?.metadata.columns) {

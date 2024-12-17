@@ -6,6 +6,7 @@ import {
 } from "./SchemaTableNode";
 import { Edge, Node, Position } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
+import { ID_SEPARATOR_CHAR } from "@/config/config";
 
 const NODE_SEP = 150;
 const RANK_SEP = 300;
@@ -32,7 +33,7 @@ export async function getGraphDataFromTables(
   const nodes = tables.map((table) => {
     const columns = (table.metadata.columns || []).map((column) => {
       return {
-        id: `${table.metadata.projectId}-${table.metadata.catalogId}-${table.metadata.schemaName}-${table.metadata.tableName}-${column.columnName}`,
+        id: `${table.metadata.projectId}${ID_SEPARATOR_CHAR}${table.metadata.catalogId}${ID_SEPARATOR_CHAR}${table.metadata.schemaName}${ID_SEPARATOR_CHAR}${table.metadata.tableName}-${column.columnName}`,
         name: column.columnName,
         isPrimary: column.isPrimary,
         isUnique: column.isUnique,
@@ -41,7 +42,7 @@ export async function getGraphDataFromTables(
       };
     });
 
-    const nodeId = `${table.metadata.projectId}-${table.metadata.catalogId}-${table.metadata.schemaName}-${table.metadata.tableName}`;
+    const nodeId = `${table.metadata.projectId}${ID_SEPARATOR_CHAR}${table.metadata.catalogId}${ID_SEPARATOR_CHAR}${table.metadata.schemaName}${ID_SEPARATOR_CHAR}${table.metadata.tableName}`;
 
     return {
       id: nodeId,

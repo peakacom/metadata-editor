@@ -43,6 +43,7 @@ import {
   setSelectedCatalog,
   setSelectedSchema,
 } from "@/services/schemaViewerSlice";
+import { ID_SEPARATOR_CHAR } from "@/config/config";
 
 const { Search } = Input;
 type SearchProps = GetProps<typeof Input.Search>;
@@ -166,7 +167,7 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
 
   const onNodeClick = useCallback(
     (id: string) => {
-      const idSplit = id.split("-");
+      const idSplit = id.split(ID_SEPARATOR_CHAR);
       const projectId = idSplit[0];
       const catalogId = idSplit[1];
       const schemaName = idSplit[2];
@@ -342,14 +343,12 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
           }}
           options={schemas?.sort((a, b) => a.label.localeCompare(b.label))}
         />
-        {selectedCatalog && selectedSchema && (
-          <Search
-            style={{ width: "30%" }}
-            placeholder="Search Tables"
-            allowClear
-            onSearch={onSearch}
-          />
-        )}
+        <Search
+          style={{ width: "30%" }}
+          placeholder="Search Tables"
+          allowClear
+          onSearch={onSearch}
+        />
       </div>
       <div className="w-full h-full">
         <ReactFlow

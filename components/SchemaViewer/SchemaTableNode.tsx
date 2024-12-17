@@ -116,7 +116,7 @@ export default function TableNode({ data }: { data: TableNodeData }) {
               <span className="text-ellipsis overflow-hidden whitespace-nowrap max-w-[85px]">
                 {column.name}
               </span>
-              <span className="px-2 inline-flex justify-end font-mono text-lighter text-[0.4rem]">
+              <span className="px-2 inline-flex justify-end font-mono text-lighter text-[0.35rem] max-w-[60px] text-ellipsis overflow-hidden">
                 {column.dataType}
               </span>
             </div>
