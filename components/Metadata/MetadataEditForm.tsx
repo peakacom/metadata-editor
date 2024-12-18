@@ -7,6 +7,7 @@ import {
   Button,
   Flex,
   Input,
+  InputRef,
   Modal,
   notification,
   Select,
@@ -15,11 +16,13 @@ import {
   Table,
   Typography,
 } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AddRelationForm, { FormValues } from "./AddRelationForm";
 import { getRelationType } from "../utils/utils";
-
+import { SearchOutlined } from "@ant-design/icons";
 const { Text } = Typography;
+import type { FilterDropdownProps } from "antd/es/table/interface";
+import Highlighter from "react-highlight-words";
 
 export interface MetadataEditorFormProps {
   table?: DBMetaDataContainer;
@@ -82,15 +85,34 @@ export default function MetadataEditorForm({
         });
       }
     };
+  const [searchText, setSearchText] = useState("");
+  const searchInput = useRef<InputRef>(null);
 
-  const fieldsDataSource = table?.metadata?.columns?.map((column) => {
-    return {
-      key: column.columnName,
-      name: column.columnName,
-      dataType: column.dataType,
-      columnDescription: column.columnDescription,
-    };
-  });
+  const fieldsDataSource = table?.metadata?.columns
+    ?.filter((column) =>
+      searchText === "" ? true : column.columnName.includes(searchText)
+    )
+    .map((column) => {
+      return {
+        key: column.columnName,
+        name: column.columnName,
+        dataType: column.dataType,
+        columnDescription: column.columnDescription,
+      };
+    });
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: FilterDropdownProps["confirm"]
+  ) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+  };
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters();
+    setSearchText("");
+  };
 
   const fieldColumns = [
     {
@@ -98,6 +120,65 @@ export default function MetadataEditorForm({
       dataIndex: "name",
       key: "name",
       ellipsis: true,
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+        close,
+      }: FilterDropdownProps) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            ref={searchInput}
+            placeholder={`Search Column Name`}
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => handleSearch(selectedKeys as string[], confirm)}
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => handleSearch(selectedKeys as string[], confirm)}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => clearFilters && handleReset(clearFilters)}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Reset
+            </Button>
+
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                close();
+              }}
+            >
+              close
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
+      ),
+      render: (text: string) => (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ),
     },
     {
       title: "Data Type",
@@ -306,7 +387,13 @@ export default function MetadataEditorForm({
           <Table
             dataSource={fieldsDataSource}
             columns={fieldColumns}
-            pagination={{ pageSize: 7, hideOnSinglePage: true, size: "small" }}
+            pagination={{
+              pageSize: 7,
+              hideOnSinglePage: true,
+
+              showSizeChanger: false,
+              size: "small",
+            }}
           />
         </Flex>
         <Flex gap="small" vertical>
