@@ -51,7 +51,7 @@ export default function MermaidDiagram(props: MermaidDiagramProps) {
         props.onError?.(e);
       }
     })();
-  }, [container_id, diagram_text, props]);
+  }, [diagram_text]);
 
   return (
     <div
