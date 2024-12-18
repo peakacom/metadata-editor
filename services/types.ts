@@ -30,6 +30,13 @@ export interface DBMetaDataColumn {
   isSystem?: boolean;
   isUnique?: boolean;
   isPrimary?: boolean;
+  lineage?: DBMetaDataColumnLineage[];
+}
+
+export interface DBMetaDataColumnLineage {
+  column: string;
+  tables: string[];
+  expression: string;
 }
 
 export interface DBMetaRelationship {

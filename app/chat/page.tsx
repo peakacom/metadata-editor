@@ -33,7 +33,7 @@ import {
 } from "antd";
 import { useRouter } from "next/navigation";
 import styles from "@/app/chat/chat.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MessageOutlined from "@ant-design/icons/MessageOutlined";
 import { Content } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
@@ -63,6 +63,17 @@ export default function Chat() {
     );
 
   const [isAIProcessing, setIsAIProcessing] = useState(false);
+
+  const containerRef = useRef<null | HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight + 400,
+      });
+    }
+  }, [chatHistory, isAIProcessing, containerRef]);
+
   const [inputValue, setInputValue] = useState("");
   const [selectedThread, setSelectedThread] = useState<ChatHistory | null>(
     null
@@ -375,6 +386,7 @@ export default function Chat() {
         <Content
           style={{ padding: "0 24px", minHeight: 280, marginTop: 30 }}
           className="flex w-full justify-center items-end overflow-scroll h-[90%]"
+          ref={containerRef}
         >
           {selectedThread && (
             <div className="flex flex-col gap-6 w-2/3 h-full">
@@ -388,7 +400,9 @@ export default function Chat() {
                   </Title>
                   {isAIProcessing &&
                   index === selectedThread.tasks.length - 1 ? (
-                    <Skeleton active />
+                    <div className="h-[450px]">
+                      <Skeleton active className="" />
+                    </div>
                   ) : (
                     <Card
                       title={

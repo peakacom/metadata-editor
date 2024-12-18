@@ -2,7 +2,11 @@ import {
   useAddRelationMutation,
   useDeleteRelationMutation,
 } from "@/services/metadata";
-import { DBMetaDataContainer, DBMetaRelationship } from "@/services/types";
+import {
+  DBMetaDataColumn,
+  DBMetaDataContainer,
+  DBMetaRelationship,
+} from "@/services/types";
 import {
   Button,
   Flex,
@@ -19,10 +23,11 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import AddRelationForm, { FormValues } from "./AddRelationForm";
 import { getRelationType } from "../utils/utils";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, ShareAltOutlined } from "@ant-design/icons";
 const { Text } = Typography;
-import type { FilterDropdownProps } from "antd/es/table/interface";
+import type { ColumnsType, FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
+import LineageViewer from "../LineageViewer/LineageViewer";
 
 export interface MetadataEditorFormProps {
   table?: DBMetaDataContainer;
@@ -59,6 +64,8 @@ export default function MetadataEditorForm({
 
   const [isAddRelationModalOpen, setIsAddRelationModalOpen] =
     useState<boolean>(false);
+  const [isColumnLineageModalOpen, setIsColumnLineageModalOpen] =
+    useState<boolean>(false);
   const [api, contextHolder] = notification.useNotification();
 
   const openNotification =
@@ -87,6 +94,9 @@ export default function MetadataEditorForm({
     };
   const [searchText, setSearchText] = useState("");
   const searchInput = useRef<InputRef>(null);
+  const [selectedColumn, setSelectedColumn] = useState<
+    DBMetaDataColumn | undefined
+  >(undefined);
 
   const fieldsDataSource = table?.metadata?.columns
     ?.filter((column) =>
@@ -114,7 +124,7 @@ export default function MetadataEditorForm({
     setSearchText("");
   };
 
-  const fieldColumns = [
+  const fieldColumns: unknown[] = [
     {
       title: "Column Name",
       dataIndex: "name",
@@ -203,6 +213,39 @@ export default function MetadataEditorForm({
       ),
     },
   ];
+  if (table?.metadata.catalogId === "2") {
+    fieldColumns.push({
+      title: "Lineage",
+      key: "action",
+      width: 90,
+      render: (_: unknown, record: unknown) => {
+        return (
+          <Space size="middle">
+            <Button
+              icon={<ShareAltOutlined />}
+              variant="solid"
+              loading={isDeletingRelation === (record as { key: string }).key}
+              disabled={
+                isDeletingRelation === undefined
+                  ? false
+                  : isDeletingRelation !== (record as { key: string }).key
+              }
+              onClick={() => {
+                if (table) {
+                  const column = table.metadata.columns?.find(
+                    (column) =>
+                      column.columnName === (record as { key: string }).key
+                  );
+                  setSelectedColumn(column);
+                  setIsColumnLineageModalOpen(true);
+                }
+              }}
+            />
+          </Space>
+        );
+      },
+    });
+  }
 
   const relationsDataSource = relations?.map((relation) => {
     return {
@@ -386,7 +429,7 @@ export default function MetadataEditorForm({
           <div className="text-gray-500">Columns</div>
           <Table
             dataSource={fieldsDataSource}
-            columns={fieldColumns}
+            columns={fieldColumns as ColumnsType}
             pagination={{
               pageSize: 7,
               hideOnSinglePage: true,
@@ -472,6 +515,21 @@ export default function MetadataEditorForm({
             }}
             isAddingRelation={isAddingRelation}
           />
+        </Modal>
+
+        <Modal
+          title="Column Lineage"
+          open={isColumnLineageModalOpen}
+          width={1000}
+          centered
+          maskClosable={false}
+          destroyOnClose
+          footer={null}
+          onCancel={() => {
+            setIsColumnLineageModalOpen(false);
+          }}
+        >
+          <LineageViewer data={selectedColumn?.lineage} />
         </Modal>
       </Flex>
     </>

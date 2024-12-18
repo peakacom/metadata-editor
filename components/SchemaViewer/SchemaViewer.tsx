@@ -352,6 +352,7 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
       </div>
       <div className="w-full h-full">
         <ReactFlow
+          id="SchemaViewer"
           defaultNodes={[]}
           defaultEdges={[]}
           fitView
@@ -385,7 +386,7 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
       </div>
       <Drawer
         title="Edit Metadata"
-        width={800}
+        width={900}
         onClose={onCloseDrawer}
         open={openDrawer}
         styles={{
