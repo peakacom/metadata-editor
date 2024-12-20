@@ -213,7 +213,10 @@ export default function MetadataEditorForm({
       ),
     },
   ];
-  if (table?.metadata.catalogId === "2") {
+  if (
+    table?.metadata.catalogId === "2" ||
+    table?.metadata.catalogType === "SEMANTIC"
+  ) {
     fieldColumns.push({
       title: "Lineage",
       key: "action",

@@ -22,10 +22,10 @@ export async function getGraphDataFromTables(
   const edges = relations.map((relation) => {
     return {
       id: `${relation.id}`,
-      source: `${relation.projectId}-${relation.sourceCatalogId}-${relation.sourceSchemaName}-${relation.sourceTableName}`,
-      sourceHandle: `${relation.projectId}-${relation.sourceCatalogId}-${relation.sourceSchemaName}-${relation.sourceTableName}-${relation.sourceColumnName}`,
-      target: `${relation.projectId}-${relation.targetCatalogId}-${relation.targetSchemaName}-${relation.targetTableName}`,
-      targetHandle: `${relation.projectId}-${relation.targetCatalogId}-${relation.targetSchemaName}-${relation.targetTableName}-${relation.targetColumnName}`,
+      source: `${relation.projectId}${ID_SEPARATOR_CHAR}${relation.sourceCatalogId}${ID_SEPARATOR_CHAR}${relation.sourceSchemaName}${ID_SEPARATOR_CHAR}${relation.sourceTableName}`,
+      sourceHandle: `${relation.projectId}${ID_SEPARATOR_CHAR}${relation.sourceCatalogId}${ID_SEPARATOR_CHAR}${relation.sourceSchemaName}${ID_SEPARATOR_CHAR}${relation.sourceTableName}${ID_SEPARATOR_CHAR}${relation.sourceColumnName}`,
+      target: `${relation.projectId}${ID_SEPARATOR_CHAR}${relation.targetCatalogId}${ID_SEPARATOR_CHAR}${relation.targetSchemaName}${ID_SEPARATOR_CHAR}${relation.targetTableName}`,
+      targetHandle: `${relation.projectId}${ID_SEPARATOR_CHAR}${relation.targetCatalogId}${ID_SEPARATOR_CHAR}${relation.targetSchemaName}${ID_SEPARATOR_CHAR}${relation.targetTableName}${ID_SEPARATOR_CHAR}${relation.targetColumnName}`,
       type: "smoothstep",
     };
   });
@@ -33,7 +33,7 @@ export async function getGraphDataFromTables(
   const nodes = tables.map((table) => {
     const columns = (table.metadata.columns || []).map((column) => {
       return {
-        id: `${table.metadata.projectId}${ID_SEPARATOR_CHAR}${table.metadata.catalogId}${ID_SEPARATOR_CHAR}${table.metadata.schemaName}${ID_SEPARATOR_CHAR}${table.metadata.tableName}-${column.columnName}`,
+        id: `${table.metadata.projectId}${ID_SEPARATOR_CHAR}${table.metadata.catalogId}${ID_SEPARATOR_CHAR}${table.metadata.schemaName}${ID_SEPARATOR_CHAR}${table.metadata.tableName}${ID_SEPARATOR_CHAR}${column.columnName}`,
         name: column.columnName,
         isPrimary: column.isPrimary,
         isUnique: column.isUnique,
