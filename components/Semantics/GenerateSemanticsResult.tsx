@@ -67,6 +67,7 @@ export default function GenerateSemanticsResult({
     if (metadata.columns) {
       setSelectedRows(metadata.columns.map((column) => column.columnName));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fieldColumns: unknown[] = [

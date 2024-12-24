@@ -51,6 +51,7 @@ export default function MermaidDiagram(props: MermaidDiagramProps) {
         props.onError?.(e);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diagram_text]);
 
   return (

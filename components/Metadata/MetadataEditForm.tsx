@@ -37,7 +37,7 @@ import Highlighter from "react-highlight-words";
 import LineageViewer from "../LineageViewer/LineageViewer";
 import GenerateSemanticsForm from "../Semantics/GenerateSemanticsForm";
 import GenerateSemanticsResult from "../Semantics/GenerateSemanticsResult";
-import { cloneDeep, set } from "lodash";
+import { cloneDeep } from "lodash";
 
 export interface MetadataEditorFormProps {
   table?: DBMetaDataContainer;
