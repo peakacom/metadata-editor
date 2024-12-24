@@ -1,8 +1,11 @@
 import {
   useAddRelationMutation,
+  useCreateSemanticsMutation,
   useDeleteRelationMutation,
+  useUpdateMetadataMutation,
 } from "@/services/metadata";
 import {
+  DBMetaData,
   DBMetaDataColumn,
   DBMetaDataContainer,
   DBMetaRelationship,
@@ -20,14 +23,21 @@ import {
   Table,
   Typography,
 } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Key, useEffect, useMemo, useRef, useState } from "react";
 import AddRelationForm, { FormValues } from "./AddRelationForm";
 import { getRelationType } from "../utils/utils";
-import { SearchOutlined, ShareAltOutlined } from "@ant-design/icons";
+import {
+  OpenAIOutlined,
+  SearchOutlined,
+  ShareAltOutlined,
+} from "@ant-design/icons";
 const { Text } = Typography;
 import type { ColumnsType, FilterDropdownProps } from "antd/es/table/interface";
 import Highlighter from "react-highlight-words";
 import LineageViewer from "../LineageViewer/LineageViewer";
+import GenerateSemanticsForm from "../Semantics/GenerateSemanticsForm";
+import GenerateSemanticsResult from "../Semantics/GenerateSemanticsResult";
+import { cloneDeep, set } from "lodash";
 
 export interface MetadataEditorFormProps {
   table?: DBMetaDataContainer;
@@ -66,7 +76,17 @@ export default function MetadataEditorForm({
     useState<boolean>(false);
   const [isColumnLineageModalOpen, setIsColumnLineageModalOpen] =
     useState<boolean>(false);
+  const [isGenerateSemanticsModalOpen, setIsGenerateSemanticsModalOpen] =
+    useState<boolean>(false);
+  const [isGeneratingSemantics, setIsGeneratingSemantics] =
+    useState<boolean>(false);
+  const [isUpdatingMetadata, setIsUpdatingMetadata] = useState<boolean>(false);
+  const [semanticMetadata, setSemanticMetadata] = useState<DBMetaData | null>(
+    null
+  );
   const [api, contextHolder] = notification.useNotification();
+  const [createSemantics] = useCreateSemanticsMutation();
+  const [updateMetadata] = useUpdateMetadataMutation();
 
   const openNotification =
     (
@@ -395,13 +415,24 @@ export default function MetadataEditorForm({
               {tableName}
             </Text>
           </Flex>
-          <Flex gap="small" vertical>
-            <div className="text-gray-500">Use with AI</div>
-            <Switch
-              className="w-8"
-              value={table?.metadata.useWithAI}
-              onChange={onUseWithAIChanged}
-            />
+          <Flex gap="middle" justify="center" align="center">
+            <Button
+              icon={<OpenAIOutlined />}
+              onClick={() => {
+                setIsGenerateSemanticsModalOpen(true);
+              }}
+            >
+              Generate Semantics
+            </Button>
+            <Flex gap="small" vertical>
+              <div className="text-gray-500">Use with AI</div>
+              <Switch
+                className="w-8"
+                style={{ margin: "auto" }}
+                value={table?.metadata.useWithAI}
+                onChange={onUseWithAIChanged}
+              />
+            </Flex>
           </Flex>
         </Flex>
 
@@ -436,7 +467,6 @@ export default function MetadataEditorForm({
             pagination={{
               pageSize: 7,
               hideOnSinglePage: true,
-
               showSizeChanger: false,
               size: "small",
             }}
@@ -533,6 +563,131 @@ export default function MetadataEditorForm({
           }}
         >
           <LineageViewer data={selectedColumn?.lineage} />
+        </Modal>
+
+        <Modal
+          title="Generate Semantics"
+          open={isGenerateSemanticsModalOpen}
+          width={1000}
+          centered
+          maskClosable={false}
+          destroyOnClose
+          footer={null}
+          onCancel={() => {
+            setIsGenerateSemanticsModalOpen(false);
+            setSemanticMetadata(null);
+          }}
+          closable={!isGeneratingSemantics && !isUpdatingMetadata}
+        >
+          {semanticMetadata ? (
+            <GenerateSemanticsResult
+              metadata={semanticMetadata}
+              onTableDescriptionChange={(description) => {
+                if (semanticMetadata) {
+                  setSemanticMetadata({
+                    ...semanticMetadata,
+                    tableDescription: description,
+                  });
+                }
+              }}
+              onColumnDescriptionChange={(
+                columnName: string,
+                description: string
+              ) => {
+                const clonedSemanticMetadata = cloneDeep(semanticMetadata);
+                clonedSemanticMetadata.columns?.forEach((column) => {
+                  if (column.columnName === columnName) {
+                    column.columnDescription = description;
+                  }
+                });
+                setSemanticMetadata(clonedSemanticMetadata);
+              }}
+              onUpdate={async (selectedRowKeys: Key[]) => {
+                setIsUpdatingMetadata(true);
+                try {
+                  const clonedTable = cloneDeep(table);
+                  if (!clonedTable) {
+                    return;
+                  }
+                  clonedTable.metadata.tableDescription =
+                    semanticMetadata.tableDescription;
+
+                  for (const key of selectedRowKeys) {
+                    clonedTable.metadata.columns?.forEach((column) => {
+                      if (column.columnName === key) {
+                        const semanticColumnDescription =
+                          semanticMetadata.columns?.find(
+                            (column) => column.columnName === key
+                          )?.columnDescription;
+                        if (semanticColumnDescription) {
+                          column.columnDescription = semanticColumnDescription;
+                        }
+                      }
+                    });
+                  }
+
+                  await updateMetadata({
+                    projectId: clonedTable.metadata.projectId,
+                    catalogId: clonedTable.metadata.catalogId,
+                    schemaName: clonedTable.metadata.schemaName,
+                    tableName: clonedTable.metadata.tableName,
+                    metadata: {
+                      tableDescription: clonedTable.metadata.tableDescription,
+                      columns: clonedTable.metadata.columns,
+                      useWithAI: clonedTable.metadata.useWithAI,
+                    },
+                  }).unwrap();
+
+                  openNotification(
+                    true,
+                    "Success",
+                    "Table metadata has been edited successfully."
+                  )();
+                } catch (error) {
+                  openNotification(
+                    true,
+                    "Fail",
+                    (error as { data: { message: string } }).data.message,
+                    false
+                  )();
+                } finally {
+                  setSemanticMetadata(null);
+                  setIsGenerateSemanticsModalOpen(false);
+                  setIsUpdatingMetadata(false);
+                }
+              }}
+              isUpdatingMetadata={isUpdatingMetadata}
+            />
+          ) : (
+            <GenerateSemanticsForm
+              isGeneratingSemantics={isGeneratingSemantics}
+              onSubmit={async (values) => {
+                if (table) {
+                  setIsGeneratingSemantics(true);
+                  try {
+                    const response = await createSemantics({
+                      projectId: table.metadata.projectId,
+                      catalogId: table.metadata.catalogId,
+                      schemaName: table.metadata.schemaName,
+                      tableName: table.metadata.tableName,
+                      initialPrompt: values.initialPrompt,
+                    }).unwrap();
+
+                    setSemanticMetadata(response.metadata);
+                  } catch (error) {
+                    openNotification(
+                      true,
+                      "Fail",
+                      (error as { data: { message: string } }).data.message,
+                      false
+                    )();
+                  } finally {
+                    setIsGeneratingSemantics(false);
+                  }
+                }
+              }}
+            />
+          )}
         </Modal>
       </Flex>
     </>

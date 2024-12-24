@@ -89,6 +89,16 @@ export const metadataApi = createApi({
       }),
       invalidatesTags: ["Metadata"],
     }),
+    createSemantics: builder.mutation<
+      CreateSemanticsResult,
+      CreateSemanticsQueryArgs
+    >({
+      query: (args) => ({
+        url: `metadata/${args.projectId}/semantics/${args.catalogId}/${args.schemaName}/${args.tableName}`,
+        method: "POST",
+        body: { initialPrompt: args.initialPrompt },
+      }),
+    }),
   }),
 });
 
@@ -130,6 +140,19 @@ export interface UpdatedMetadata {
   useWithAI?: boolean;
 }
 
+export interface CreateSemanticsQueryArgs {
+  projectId: string;
+  catalogId: string;
+  schemaName: string;
+  tableName: string;
+  initialPrompt: string;
+}
+
+export interface CreateSemanticsResult {
+  metadata: DBMetaData;
+  threadId: string;
+}
+
 export const {
   useGetProjectMetadataQuery,
   useGetCatalogRelationsQuery,
@@ -137,4 +160,5 @@ export const {
   useUpdateRelationMutation,
   useDeleteRelationMutation,
   useUpdateMetadataMutation,
+  useCreateSemanticsMutation,
 } = metadataApi;

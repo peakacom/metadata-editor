@@ -29,9 +29,9 @@ export default function TableNode({ data }: { data: TableNodeData }) {
     "!h-px !w-px !min-w-0 !min-h-0 !cursor-grab !border-0 !opacity-0";
 
   const itemHeight = "h-[22px]";
-  const filteredColumns = data.columns.filter(
-    (column) => !column.name.startsWith("_q_")
-  );
+  const filteredColumns = data.columns
+    .filter((column) => !column.name.startsWith("_q_"))
+    .sort((c1) => (c1.isPrimary ? -1 : 1));
   const slice = data.hasRelations ? data.columns.length : 10;
   const headerColor =
     data.useWithAI === true ? " bg-purple-400" : " bg-slate-400";

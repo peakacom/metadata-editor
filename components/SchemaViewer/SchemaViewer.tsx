@@ -460,6 +460,7 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
             const clonedSelectedTable = cloneDeep(selectedTable);
             clonedSelectedTable?.metadata.columns?.forEach((column) => {
               column.isPrimary = column.columnName === primaryKey;
+              column.isNotNull = column.columnName === primaryKey;
             });
             setSelectedTable(clonedSelectedTable);
           }}
