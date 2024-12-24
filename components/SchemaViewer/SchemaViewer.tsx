@@ -174,7 +174,8 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
         selectedTable.metadata.tableName
       );
     }
-  }, [projectId, refreshDrawer, selectedTable, tables]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tables]);
 
   const onNodeClick = useCallback(
     (id: string) => {
