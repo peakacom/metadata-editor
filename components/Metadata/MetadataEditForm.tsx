@@ -50,6 +50,7 @@ export interface MetadataEditorFormProps {
   onRelationDelete: (relationId: string) => void;
   onRelationAdd: (relation: DBMetaRelationship) => void;
   onUseWithAIChanged: (useWithAI: boolean) => void;
+  onUpdate: () => void;
 }
 
 export default function MetadataEditorForm({
@@ -63,6 +64,7 @@ export default function MetadataEditorForm({
   onRelationDelete,
   onRelationAdd,
   onUseWithAIChanged,
+  onUpdate,
 }: MetadataEditorFormProps) {
   const [deleteRelations] = useDeleteRelationMutation();
   const [addRelation] = useAddRelationMutation();
@@ -654,6 +656,7 @@ export default function MetadataEditorForm({
                   setSemanticMetadata(null);
                   setIsGenerateSemanticsModalOpen(false);
                   setIsUpdatingMetadata(false);
+                  onUpdate();
                 }
               }}
               isUpdatingMetadata={isUpdatingMetadata}

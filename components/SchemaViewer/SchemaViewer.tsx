@@ -445,6 +445,16 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
         <MetadataEditorForm
           table={selectedTable}
           relations={selectedTableRelations}
+          onUpdate={() => {
+            if (selectedTable) {
+              refreshDrawer(
+                projectId,
+                selectedTable.metadata.catalogId,
+                selectedTable.metadata.schemaName,
+                selectedTable.metadata.tableName
+              );
+            }
+          }}
           onTableDescriptionChange={(description: string) => {
             if (selectedTable) {
               setSelectedTable({
