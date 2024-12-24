@@ -165,6 +165,17 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
     [tables]
   );
 
+  useEffect(() => {
+    if (selectedTable) {
+      refreshDrawer(
+        projectId,
+        selectedTable.metadata.catalogId,
+        selectedTable.metadata.schemaName,
+        selectedTable.metadata.tableName
+      );
+    }
+  }, [projectId, refreshDrawer, selectedTable, tables]);
+
   const onNodeClick = useCallback(
     (id: string) => {
       const idSplit = id.split(ID_SEPARATOR_CHAR);
@@ -445,16 +456,6 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
         <MetadataEditorForm
           table={selectedTable}
           relations={selectedTableRelations}
-          onUpdate={() => {
-            if (selectedTable) {
-              refreshDrawer(
-                projectId,
-                selectedTable.metadata.catalogId,
-                selectedTable.metadata.schemaName,
-                selectedTable.metadata.tableName
-              );
-            }
-          }}
           onTableDescriptionChange={(description: string) => {
             if (selectedTable) {
               setSelectedTable({
