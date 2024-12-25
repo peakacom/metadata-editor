@@ -1,12 +1,14 @@
 "use client";
 
-import { reset, selectApiKey, setApiKey } from "@/services/apiKeySlice";
+import { aiApi } from "@/services/ai";
+import { resetApiKey, selectApiKey, setApiKey } from "@/services/apiKeySlice";
 import { metadataApi } from "@/services/metadata";
 import {
   partnerApi,
   useGetProjectInfoQuery,
   useLazyGetProjectInfoQuery,
 } from "@/services/partner";
+import { resetSchemaViewer } from "@/services/schemaViewerSlice";
 import {
   Button,
   Card,
@@ -134,7 +136,8 @@ export default function Settings() {
                 color="danger"
                 variant="solid"
                 onClick={async () => {
-                  dispatch(reset());
+                  dispatch(resetApiKey());
+                  dispatch(resetSchemaViewer());
                   form.setFieldsValue({ apiKey: "" });
                   openNotification(
                     true,
@@ -143,6 +146,7 @@ export default function Settings() {
                   )();
                   dispatch(partnerApi.util.resetApiState());
                   dispatch(metadataApi.util.resetApiState());
+                  dispatch(aiApi.util.resetApiState());
                 }}
               >
                 Delete

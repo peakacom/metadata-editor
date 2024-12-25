@@ -24,14 +24,14 @@ export const apiKeySlice = createSlice({
       );
       state.apiKey = action.payload;
     },
-    reset: (state) => {
+    resetApiKey: (state) => {
       localStorage.removeItem(API_KEY_LOCAL_STORAGE_KEY);
       state.apiKey = null;
     },
   },
 });
 
-export const { setApiKey, reset } = apiKeySlice.actions;
+export const { setApiKey, resetApiKey } = apiKeySlice.actions;
 
 export const selectApiKey = (state: RootState) => state.apiKey;
 

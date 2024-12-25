@@ -21,14 +21,14 @@ export const schemaViewerSlice = createSlice({
     setSelectedSchema: (state, action: PayloadAction<string | undefined>) => {
       state.selectedSchema = action.payload;
     },
-    reset: (state) => {
+    resetSchemaViewer: (state) => {
       state.selectedCatalog = undefined;
       state.selectedSchema = undefined;
     },
   },
 });
 
-export const { setSelectedCatalog, setSelectedSchema, reset } =
+export const { setSelectedCatalog, setSelectedSchema, resetSchemaViewer } =
   schemaViewerSlice.actions;
 
 export const selectSelectedCatalog = (state: RootState) =>
