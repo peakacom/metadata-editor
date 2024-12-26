@@ -11,19 +11,28 @@ export const partnerApi = createApi({
     baseUrl: PARTNER_API_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
       const apiKeyState = (getState() as RootState).apiKey;
-      if (apiKeyState) {
-        headers.set("authorization", `Bearer ${apiKeyState.apiKey}`);
+      if (!headers.get("authorization") && apiKeyState) {
+        headers.set("authorization", `Bearer ${apiKeyState.selectedApiKey}`);
       }
 
       return headers;
     },
   }),
   endpoints: (builder) => ({
-    getProjectInfo: builder.query<ProjectInfo, unknown>({
-      query: () => `info`,
+    getProjectInfo: builder.query<ProjectInfo, GetProjectInfoQueryArgs>({
+      query: (args) => ({
+        url: `info`,
+        headers: {
+          authorization: args.apiKey ? `Bearer ${args.apiKey}` : undefined,
+        },
+      }),
     }),
   }),
 });
+
+export interface GetProjectInfoQueryArgs {
+  apiKey?: string;
+}
 
 export const { useGetProjectInfoQuery, useLazyGetProjectInfoQuery } =
   partnerApi;

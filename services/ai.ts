@@ -12,7 +12,7 @@ export const aiApi = createApi({
     prepareHeaders: (headers, { getState }) => {
       const apiKeyState = (getState() as RootState).apiKey;
       if (apiKeyState) {
-        headers.set("authorization", `Bearer ${apiKeyState.apiKey}`);
+        headers.set("authorization", `Bearer ${apiKeyState.selectedApiKey}`);
       }
 
       return headers;

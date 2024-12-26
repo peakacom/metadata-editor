@@ -1,13 +1,15 @@
 "use client";
 
+import useProjectInfos from "@/hooks/useProjectInfos";
 import { aiApi } from "@/services/ai";
-import { resetApiKey, selectApiKey, setApiKey } from "@/services/apiKeySlice";
-import { metadataApi } from "@/services/metadata";
 import {
-  partnerApi,
-  useGetProjectInfoQuery,
-  useLazyGetProjectInfoQuery,
-} from "@/services/partner";
+  selectApiKey,
+  setApiKey,
+  setApiKeys,
+  setSelectedApiKey,
+} from "@/services/apiKeySlice";
+import { metadataApi } from "@/services/metadata";
+import { partnerApi, useLazyGetProjectInfoQuery } from "@/services/partner";
 import { resetSchemaViewer } from "@/services/schemaViewerSlice";
 import {
   Button,
@@ -21,7 +23,8 @@ import {
   Spin,
   Typography,
 } from "antd";
-import { useEffect, useState } from "react";
+import { cloneDeep } from "lodash";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 export interface SettingsFormValues {
@@ -30,39 +33,45 @@ export interface SettingsFormValues {
 const { Paragraph } = Typography;
 
 export default function Settings() {
-  const apiKeyContainer = useSelector(selectApiKey);
+  const apiKeyState = useSelector(selectApiKey);
+
   const dispatch = useDispatch();
   const [getProjectInfo] = useLazyGetProjectInfoQuery();
   const [isSavingAPIKey, setIsSavingAPIKey] = useState(false);
   const [form] = Form.useForm();
   const [newApiKeyEntered, setNewApiKeyEntered] = useState(false);
-  const {
-    data: projectInfo,
-    isLoading: isProjectInfoLoading,
-    refetch: refetchProjectInfo,
-    error: projectInfoError,
-  } = useGetProjectInfoQuery({});
+  const projectInfos = useProjectInfos();
 
   const onFinish: FormProps<SettingsFormValues>["onFinish"] = async (
     values
   ) => {
-    const oldApiKey = apiKeyContainer ? apiKeyContainer.apiKey : undefined;
+    const apiKeys = apiKeyState.apiKeys;
+    if (apiKeys?.includes(values.apiKey)) {
+      openNotification(true, "Error", "API Key already added.", false)();
+      return;
+    }
+
     try {
       setIsSavingAPIKey(true);
       dispatch(setApiKey(values.apiKey));
-      await getProjectInfo({}).unwrap();
-      openNotification(true, "Success", "API Key saved successfully.")();
-      refetchProjectInfo();
+      if (!apiKeyState.selectedApiKey) {
+        dispatch(setSelectedApiKey(values.apiKey));
+        dispatch(resetSchemaViewer());
+        dispatch(metadataApi.util.resetApiState());
+        dispatch(aiApi.util.resetApiState());
+        dispatch(partnerApi.util.resetApiState());
+      }
+      await getProjectInfo({ apiKey: values.apiKey }).unwrap();
+      openNotification(true, "Success", "API Key added successfully.")();
     } catch (error) {
       console.error(error);
-      dispatch(setApiKey(oldApiKey ? oldApiKey : ""));
-      form.setFieldsValue({
-        apiKey: oldApiKey,
-      });
       openNotification(true, "Error", "Invalid API Key.", false)();
     } finally {
       setIsSavingAPIKey(false);
       setNewApiKeyEntered(false);
+      form.setFieldsValue({
+        apiKey: "",
+      });
     }
   };
 
@@ -93,19 +102,10 @@ export default function Settings() {
       }
     };
 
-  useEffect(() => {
-    if (!apiKeyContainer.apiKey) {
-      return;
-    }
-    form.setFieldsValue({
-      apiKey: apiKeyContainer.apiKey.split(".")[0] + ".******************",
-    });
-  }, [apiKeyContainer, form, isProjectInfoLoading]);
-
   return (
-    <div className="flex flex-col gap-10 justify-center items-center w-full h-full">
+    <div className="flex flex-col gap-10 justify-start items-center w-full h-full pt-10">
       {contextHolder}
-      <Card style={{ width: 600 }} title={"API Key"}>
+      <Card style={{ width: 600 }} title={"New API Key"}>
         <Form
           form={form}
           preserve={false}
@@ -133,45 +133,101 @@ export default function Settings() {
           <Form.Item label={null}>
             <Flex justify="end" gap="large">
               <Button
-                color="danger"
-                variant="solid"
-                onClick={async () => {
-                  dispatch(resetApiKey());
-                  dispatch(resetSchemaViewer());
-                  form.setFieldsValue({ apiKey: "" });
-                  openNotification(
-                    true,
-                    "Success",
-                    "API Key deleted successfully."
-                  )();
-                  dispatch(partnerApi.util.resetApiState());
-                  dispatch(metadataApi.util.resetApiState());
-                  dispatch(aiApi.util.resetApiState());
-                }}
-              >
-                Delete
-              </Button>
-              <Button
                 type="primary"
                 htmlType="submit"
                 disabled={!newApiKeyEntered}
               >
-                Save API Key
+                Add API Key
               </Button>
             </Flex>
           </Form.Item>
         </Form>
       </Card>
-      {projectInfo && !projectInfoError && (
-        <Card style={{ width: 600 }} title={"Project Info"}>
-          <Flex vertical align="start" justify="start">
-            <Paragraph>{`Account: ${projectInfo.email}`}</Paragraph>
-            <Paragraph>{`Project Name: ${projectInfo.projectName}`}</Paragraph>
-            <Paragraph>{`Project Id: ${projectInfo.projectId}`}</Paragraph>
-          </Flex>
-        </Card>
+      {projectInfos && (
+        <>
+          {Object.keys(projectInfos).map((key) => (
+            <Card
+              style={{ width: 600 }}
+              title={
+                <div className="flex justify-between items-end">
+                  <span>Project Info</span>
+
+                  <div className="flex justify-center items-center gap-3">
+                    {apiKeyState.selectedApiKey === key ? (
+                      <span className="text-green-500">Active</span>
+                    ) : (
+                      <Button
+                        color="primary"
+                        variant="solid"
+                        disabled={apiKeyState.selectedApiKey === key}
+                        onClick={async () => {
+                          dispatch(setSelectedApiKey(key));
+                          dispatch(resetSchemaViewer());
+                          dispatch(metadataApi.util.resetApiState());
+                          dispatch(aiApi.util.resetApiState());
+                          dispatch(partnerApi.util.resetApiState());
+                          openNotification(
+                            true,
+                            "Success",
+                            "API Key activated successfully."
+                          )();
+                        }}
+                      >
+                        Activate
+                      </Button>
+                    )}
+
+                    <Button
+                      color="danger"
+                      variant="solid"
+                      onClick={async () => {
+                        if (!apiKeyState.apiKeys) {
+                          return;
+                        }
+
+                        const apiKeys = cloneDeep(apiKeyState.apiKeys).filter(
+                          (apiKey) => apiKey !== key
+                        );
+
+                        if (key === apiKeyState.selectedApiKey) {
+                          if (apiKeys.length > 0) {
+                            dispatch(setSelectedApiKey(apiKeys[0]));
+                          } else {
+                            dispatch(setSelectedApiKey(null));
+                          }
+                        }
+
+                        dispatch(setApiKeys(apiKeys));
+
+                        openNotification(
+                          true,
+                          "Success",
+                          "API Key deleted successfully."
+                        )();
+
+                        dispatch(resetSchemaViewer());
+                        dispatch(metadataApi.util.resetApiState());
+                        dispatch(aiApi.util.resetApiState());
+                        dispatch(partnerApi.util.resetApiState());
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              }
+              key={key}
+            >
+              <Flex vertical align="start" justify="start">
+                <Paragraph>{`Account: ${projectInfos[key].email}`}</Paragraph>
+                <Paragraph>{`Project Name: ${projectInfos[key].projectName}`}</Paragraph>
+                <Paragraph>{`Project Id: ${projectInfos[key].projectId}`}</Paragraph>
+              </Flex>
+            </Card>
+          ))}
+        </>
       )}
-      <Spin spinning={isProjectInfoLoading || isSavingAPIKey} fullscreen />
+      <Spin spinning={!projectInfos || isSavingAPIKey} fullscreen />
     </div>
   );
 }
