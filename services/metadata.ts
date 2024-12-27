@@ -99,6 +99,17 @@ export const metadataApi = createApi({
         body: { initialPrompt: args.initialPrompt },
       }),
     }),
+    generateSampleQuestions: builder.query<
+      GenerateSampleQuestionsResult,
+      GenerateSampleQuestionsQueryArgs
+    >({
+      query: (args) => ({
+        url: `metadata/${
+          args.projectId
+        }/questions/generate?question=${encodeURIComponent(args.question)}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -153,7 +164,24 @@ export interface CreateSemanticsResult {
   threadId: string;
 }
 
+export interface GenerateSampleQuestionsQueryArgs {
+  projectId: string;
+  question: string;
+  threadId?: string;
+}
+
+export interface GenerateSampleQuestionsResult {
+  questions: SampleQuestion[];
+  threadId: string;
+}
+
+export interface SampleQuestion {
+  question: string;
+  category: string;
+}
+
 export const {
+  useGenerateSampleQuestionsQuery,
   useGetProjectMetadataQuery,
   useGetCatalogRelationsQuery,
   useAddRelationMutation,

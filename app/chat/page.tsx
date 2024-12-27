@@ -46,6 +46,7 @@ import {
 import { cloneDeep } from "lodash";
 import { format } from "sql-formatter";
 import ChatDataViewer from "@/components/Chat/ChatDataViewer";
+import { useGenerateSampleQuestionsQuery } from "@/services/metadata";
 
 const { Title, Text } = Typography;
 
@@ -89,6 +90,19 @@ export default function Chat() {
     useDeleteChatHistoryMutation();
   const [updateChatHistoryName, { isLoading: isUpdatingThread }] =
     useUpdateChatHistoryNameMutation();
+
+  const { data: sampleQuestions, isLoading: isSampleQuestionsLoading } =
+    useGenerateSampleQuestionsQuery(
+      {
+        projectId: projectInfo ? projectInfo?.projectId : "",
+        question: selectedThread
+          ? selectedThread.tasks[selectedThread.tasks.length - 1].message
+          : "",
+      },
+      { skip: !projectInfo }
+    );
+  console.log(sampleQuestions);
+  console.log(isSampleQuestionsLoading);
 
   useEffect(() => {
     if (chatHistory && selectedThread && !isAIProcessing) {
