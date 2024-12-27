@@ -30,6 +30,7 @@ import {
   TreeDataNode,
   TreeProps,
   Typography,
+  Tag,
 } from "antd";
 import { useRouter } from "next/navigation";
 import styles from "@/app/chat/chat.module.css";
@@ -47,6 +48,7 @@ import { cloneDeep } from "lodash";
 import { format } from "sql-formatter";
 import ChatDataViewer from "@/components/Chat/ChatDataViewer";
 import { useGenerateSampleQuestionsQuery } from "@/services/metadata";
+import ChatSampleQuestionsViewer from "@/components/Chat/ChatSampleQuestionsViewer";
 
 const { Title, Text } = Typography;
 
@@ -150,13 +152,15 @@ export default function Chat() {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const submitAsk = async () => {
+  const submitAsk = async (question?: string) => {
+    const aiMessage = question ? question : inputValue;
+
     if (selectedThread) {
       const clonedSelectedThread = cloneDeep(selectedThread);
       clonedSelectedThread?.tasks.push({
         step: [],
         output: undefined,
-        message: inputValue,
+        message: aiMessage,
         modelParams: {},
       });
       setIsAIProcessing(true);
@@ -171,7 +175,7 @@ export default function Chat() {
           {
             step: [],
             output: undefined,
-            message: inputValue,
+            message: aiMessage,
             modelParams: {},
           },
         ],
@@ -181,7 +185,7 @@ export default function Chat() {
 
     try {
       const result = await askAIAgent({
-        message: inputValue,
+        message: aiMessage,
         projectId: projectInfo ? projectInfo.projectId : "",
         threadId: selectedThread ? selectedThread.aiThreadId : undefined,
       }).unwrap();
@@ -194,7 +198,7 @@ export default function Chat() {
           {
             step: [],
             output: result.output,
-            message: inputValue,
+            message: aiMessage,
             modelParams: {},
           },
         ],
@@ -399,10 +403,10 @@ export default function Chat() {
         </Sider>
         <Content
           style={{ padding: "0 24px", minHeight: 280, marginTop: 30 }}
-          className="flex w-full justify-center items-end overflow-scroll h-[90%]"
+          className="flex w-full justify-center items-center overflow-scroll h-[90%]"
           ref={containerRef}
         >
-          {selectedThread && (
+          {selectedThread ? (
             <div className="flex flex-col gap-6 w-2/3 h-full">
               {selectedThread.tasks.map((task, index) => (
                 <div key={index}>
@@ -487,7 +491,33 @@ export default function Chat() {
                   )}
                 </div>
               ))}
+              {!isAIProcessing && (
+                <div className="flex items-center justify-center gap-6 w-full h-full">
+                  <ChatSampleQuestionsViewer
+                    sampleQuestions={sampleQuestions}
+                    onSubmit={(question: string) => {
+                      submitAsk(question);
+                    }}
+                  />
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              {isSampleQuestionsLoading ? (
+                <div className="w-full h-full flex justify-center items-center">
+                  <Spin indicator={<LoadingOutlined spin />} size="large" />
+                  <Text className="ml-3">Generating sample questions...</Text>
+                </div>
+              ) : (
+                <ChatSampleQuestionsViewer
+                  sampleQuestions={sampleQuestions}
+                  onSubmit={(question: string) => {
+                    submitAsk(question);
+                  }}
+                />
+              )}
+            </>
           )}
 
           <div
@@ -510,15 +540,18 @@ export default function Chat() {
                 event.preventDefault();
                 submitAsk();
               }}
-              disabled={isAIProcessing}
+              disabled={isAIProcessing || isSampleQuestionsLoading}
             />
             <div className="flex flex-col justify-end align-center">
               <Button
                 className="min-w-[72px] ml-3"
+                disabled={isSampleQuestionsLoading}
                 type="primary"
                 size="large"
                 loading={isAIProcessing}
-                onClick={submitAsk}
+                onClick={() => {
+                  submitAsk();
+                }}
               >
                 Ask
               </Button>
