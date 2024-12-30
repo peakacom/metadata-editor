@@ -30,7 +30,6 @@ import {
   TreeDataNode,
   TreeProps,
   Typography,
-  Tag,
 } from "antd";
 import { useRouter } from "next/navigation";
 import styles from "@/app/chat/chat.module.css";
@@ -103,8 +102,6 @@ export default function Chat() {
       },
       { skip: !projectInfo }
     );
-  console.log(sampleQuestions);
-  console.log(isSampleQuestionsLoading);
 
   useEffect(() => {
     if (chatHistory && selectedThread && !isAIProcessing) {
