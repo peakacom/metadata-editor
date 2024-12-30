@@ -23,7 +23,7 @@ export const metadataApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Relations", "Metadata"],
+  tagTypes: ["Relations", "Metadata", "GoldenSql"],
   endpoints: (builder) => ({
     getProjectMetadata: builder.query<
       GetProjectMetadataResult,
@@ -110,6 +110,28 @@ export const metadataApi = createApi({
         method: "GET",
       }),
     }),
+    getGoldenSqls: builder.query<GetGoldenSqlsResult, GetGoldenSqlsQueryArgs>({
+      query: (args) => `metadata/${args.projectId}/golden-sqls`,
+      providesTags: ["GoldenSql"],
+    }),
+    addGoldenSql: builder.mutation<
+      CreateGoldenSqlQueryArgs,
+      CreateGoldenSqlQueryArgs
+    >({
+      query: (args) => ({
+        url: `metadata/${args.projectId}/golden-sqls`,
+        method: "POST",
+        body: { sql: args.sql, prompt: args.prompt },
+      }),
+      invalidatesTags: ["GoldenSql"],
+    }),
+    deleteGoldenSql: builder.mutation<unknown, DeleteGoldenSqlQueryArgs>({
+      query: (args) => ({
+        url: `metadata/${args.projectId}/golden-sqls/${args.id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["GoldenSql"],
+    }),
   }),
 });
 
@@ -137,6 +159,7 @@ export interface DeleteRelationQueryArgs {
   tableName: string;
   relationId: string;
 }
+
 export interface UpdateMetadataQueryArgs {
   projectId: string;
   catalogId: string;
@@ -180,7 +203,41 @@ export interface SampleQuestion {
   category: string;
 }
 
+export interface GetGoldenSqlsResult {
+  result: GoldenSql[];
+}
+
+export interface GetGoldenSqlsQueryArgs {
+  projectId: string;
+}
+
+export interface GoldenSql {
+  id: string;
+  content: string;
+  metadata: GoldenSqlMetadata;
+}
+
+export interface GoldenSqlMetadata {
+  sql: string;
+  prompt: string;
+  projectId: string;
+}
+
+export interface CreateGoldenSqlQueryArgs {
+  projectId: string;
+  prompt: string;
+  sql: string;
+}
+
+export interface DeleteGoldenSqlQueryArgs {
+  id: string;
+  projectId: string;
+}
+
 export const {
+  useGetGoldenSqlsQuery,
+  useAddGoldenSqlMutation,
+  useDeleteGoldenSqlMutation,
   useGenerateSampleQuestionsQuery,
   useGetProjectMetadataQuery,
   useGetCatalogRelationsQuery,
