@@ -73,6 +73,21 @@ export default function AppLayout({
             >
               Modeling
             </Button>
+            <Button
+              shape="round"
+              size="small"
+              style={{
+                border: "none",
+              }}
+              className={
+                pathname.includes(Path.GoldSQL.toString())
+                  ? styles.headerButtonHighlight
+                  : styles.headerButton
+              }
+              onClick={() => router.push(Path.GoldSQL)}
+            >
+              Gold SQL
+            </Button>
           </div>
         </Space>
         {projectInfo && (

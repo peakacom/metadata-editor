@@ -46,7 +46,10 @@ import {
 import { cloneDeep } from "lodash";
 import { format } from "sql-formatter";
 import ChatDataViewer from "@/components/Chat/ChatDataViewer";
-import { useGenerateSampleQuestionsQuery } from "@/services/metadata";
+import {
+  useAddGoldenSqlMutation,
+  useGenerateSampleQuestionsQuery,
+} from "@/services/metadata";
 import ChatSampleQuestionsViewer from "@/components/Chat/ChatSampleQuestionsViewer";
 
 const { Title, Text } = Typography;
@@ -80,6 +83,13 @@ export default function Chat() {
   const [selectedThread, setSelectedThread] = useState<ChatHistory | null>(
     null
   );
+
+  const [isAddGoldSQLModalOpen, setIsGoldSQLModalOpen] = useState(false);
+  const [selectedGoldSqlQuestion, setSelectedGoldSqlQuestion] =
+    useState<string>("");
+  const [selectedGoldSqlQuery, setSelectedGoldSqlQuery] = useState<string>("");
+  const [addGoldSQL, { isLoading: isAddingGoldSQL }] =
+    useAddGoldenSqlMutation();
 
   const [isThreadModalOpen, setIsThreadModalOpen] = useState(false);
   const [isThreadModalEdit, setIsThreadModalEdit] = useState(false);
@@ -364,6 +374,47 @@ export default function Chat() {
           "Do you really want to delete this thread?"
         )}
       </Modal>
+      <Modal
+        title={"Add to Golden SQL"}
+        open={isAddGoldSQLModalOpen}
+        centered
+        width={450}
+        destroyOnClose
+        onCancel={() => {
+          setIsGoldSQLModalOpen(false);
+        }}
+        okText="Add"
+        okType="primary"
+        okButtonProps={{ loading: isAddingGoldSQL }}
+        onOk={async () => {
+          if (!projectInfo) {
+            return;
+          }
+          try {
+            await addGoldSQL({
+              projectId: projectInfo.projectId,
+              prompt: selectedGoldSqlQuestion,
+              sql: selectedGoldSqlQuery,
+            }).unwrap();
+            openNotification(
+              true,
+              "Success",
+              "Successfully added Question/SQL pair as Gold SQL."
+            )();
+          } catch {
+            openNotification(
+              true,
+              "Error",
+              "Could not add to Gold SQL.",
+              false
+            )();
+          } finally {
+            setIsGoldSQLModalOpen(false);
+          }
+        }}
+      >
+        Do you want to add Question/SQL pair as Gold SQL?
+      </Modal>
       <Layout
         style={{
           background: colorBgContainer,
@@ -421,12 +472,29 @@ export default function Chat() {
                   ) : (
                     <Card
                       title={
-                        <div>
-                          <CheckCircleFilled
-                            className="mr-2"
-                            style={{ color: "#52c41a" }}
-                          />
-                          Summary
+                        <div className="flex justify-between">
+                          <div>
+                            <CheckCircleFilled
+                              className="mr-2"
+                              style={{ color: "#52c41a" }}
+                            />
+                            Summary
+                          </div>
+                          <Button
+                            type="primary"
+                            onClick={() => {
+                              if (!task.output) {
+                                return;
+                              }
+
+                              setSelectedGoldSqlQuestion(task.output.text);
+                              setSelectedGoldSqlQuery(task.output.query);
+
+                              setIsGoldSQLModalOpen(true);
+                            }}
+                          >
+                            Add to Gold SQL
+                          </Button>
                         </div>
                       }
                       style={{

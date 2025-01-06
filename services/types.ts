@@ -72,4 +72,5 @@ export enum Path {
   Chat = "/chat",
   Modeling = "/modeling",
   Settings = "/settings",
+  GoldSQL = "/gold-sql",
 }

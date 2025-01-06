@@ -9,6 +9,7 @@ export interface ChatDataViewerProps {
 export default function ChatDataViewer({ data }: ChatDataViewerProps) {
   const transformedData = useMemo(() => {
     if (!data || data.length === 0) return { dataSource: [], columns: [] };
+
     if (Array.isArray(data[0])) {
       const columns = data[0].map((item) => ({
         title: item.name.charAt(0).toUpperCase() + item.name.slice(1),

@@ -233,13 +233,14 @@ export default function MetadataEditorForm({
       ),
     },
   ];
+
   if (
     table?.metadata.catalogId === "2" ||
     table?.metadata.catalogType === "SEMANTIC"
   ) {
     fieldColumns.push({
       title: "Lineage",
-      key: "action",
+      key: "lineage",
       width: 90,
       render: (_: unknown, record: unknown) => {
         return (
@@ -351,7 +352,7 @@ export default function MetadataEditorForm({
                   openNotification(
                     true,
                     "Success",
-                    "Relation has been deletes successfully."
+                    "Relation has been deleted successfully."
                   )();
                 } catch (error) {
                   openNotification(
