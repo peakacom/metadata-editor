@@ -31,6 +31,8 @@ export interface DBMetaDataColumn {
   isUnique?: boolean;
   isPrimary?: boolean;
   lineage?: DBMetaDataColumnLineage[];
+  isCategorical?: boolean;
+  categoricalValues?: string[];
 }
 
 export interface DBMetaDataColumnLineage {

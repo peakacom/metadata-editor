@@ -132,6 +132,17 @@ export const metadataApi = createApi({
       }),
       invalidatesTags: ["GoldenSql"],
     }),
+    generateCategoricalColumn: builder.mutation<
+      unknown,
+      GenerateCategoricalColumnQueryArgs
+    >({
+      query: (args) => ({
+        url: `metadata/${args.projectId}/categorical/${args.catalogId}/${args.schemaName}/${args.tableName}/${args.columnName}`,
+        method: "PUT",
+        body: { limit: args.limit },
+      }),
+      invalidatesTags: ["Metadata"],
+    }),
   }),
 });
 
@@ -234,7 +245,17 @@ export interface DeleteGoldenSqlQueryArgs {
   projectId: string;
 }
 
+export interface GenerateCategoricalColumnQueryArgs {
+  projectId: string;
+  catalogId: string;
+  schemaName: string;
+  tableName: string;
+  columnName: string;
+  limit: number;
+}
+
 export const {
+  useGenerateCategoricalColumnMutation,
   useGetGoldenSqlsQuery,
   useAddGoldenSqlMutation,
   useDeleteGoldenSqlMutation,

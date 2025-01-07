@@ -2,6 +2,7 @@ import {
   useAddRelationMutation,
   useCreateSemanticsMutation,
   useDeleteRelationMutation,
+  useGenerateCategoricalColumnMutation,
   useUpdateMetadataMutation,
 } from "@/services/metadata";
 import {
@@ -27,7 +28,9 @@ import { Key, useEffect, useMemo, useRef, useState } from "react";
 import AddRelationForm, { FormValues } from "./AddRelationForm";
 import { getRelationType } from "../utils/utils";
 import {
+  MinusCircleOutlined,
   OpenAIOutlined,
+  PlusCircleOutlined,
   SearchOutlined,
   ShareAltOutlined,
 } from "@ant-design/icons";
@@ -88,6 +91,30 @@ export default function MetadataEditorForm({
   const [createSemantics] = useCreateSemanticsMutation();
   const [updateMetadata] = useUpdateMetadataMutation();
 
+  //Categorical Column
+  const [isCategoricalColumnModalOpen, setIsCategoricalColumnModalOpen] =
+    useState<boolean>(false);
+
+  const [categoricalColumnLimit, setCategoricalColumnLimit] =
+    useState<number>(10);
+
+  const [
+    generateCategoricalColumn,
+    { isLoading: isGeneratingCategoricalColumn },
+  ] = useGenerateCategoricalColumnMutation();
+
+  const [generatingCategoricalColumn, setGeneratingCategoricalColumn] =
+    useState<
+      | {
+          key: string;
+          name: string;
+          dataType: string;
+          columnDescription: string;
+          isCategorical: boolean;
+        }
+      | undefined
+    >(undefined);
+
   const openNotification =
     (
       pauseOnHover: boolean,
@@ -112,6 +139,7 @@ export default function MetadataEditorForm({
         });
       }
     };
+
   const [searchText, setSearchText] = useState("");
   const searchInput = useRef<InputRef>(null);
   const [selectedColumn, setSelectedColumn] = useState<
@@ -128,6 +156,7 @@ export default function MetadataEditorForm({
         name: column.columnName,
         dataType: column.dataType,
         columnDescription: column.columnDescription,
+        isCategorical: column.isCategorical,
       };
     });
 
@@ -150,6 +179,7 @@ export default function MetadataEditorForm({
       dataIndex: "name",
       key: "name",
       ellipsis: true,
+      width: 180,
       filterDropdown: ({
         setSelectedKeys,
         selectedKeys,
@@ -215,6 +245,7 @@ export default function MetadataEditorForm({
       dataIndex: "dataType",
       key: "dataType",
       ellipsis: true,
+      width: 120,
     },
     {
       title: "Description",
@@ -231,6 +262,51 @@ export default function MetadataEditorForm({
           id={text}
         />
       ),
+    },
+    {
+      title: "Categorical",
+      key: "isCategorical",
+      width: 110,
+      render: (_: unknown, record: unknown) => {
+        const column = record as {
+          key: string;
+          name: string;
+          dataType: string;
+          columnDescription: string;
+          isCategorical: boolean;
+        };
+
+        return (
+          <div className="flex justify-center items-center">
+            <Space size="middle">
+              <Button
+                color="primary"
+                variant="solid"
+                loading={
+                  generatingCategoricalColumn?.key ===
+                  (record as { key: string }).key
+                }
+                disabled={
+                  generatingCategoricalColumn?.key === undefined
+                    ? false
+                    : generatingCategoricalColumn?.key !==
+                      (record as { key: string }).key
+                }
+                onClick={async () => {
+                  setGeneratingCategoricalColumn(column);
+                  setIsCategoricalColumnModalOpen(true);
+                }}
+              >
+                {column.isCategorical ? (
+                  <MinusCircleOutlined />
+                ) : (
+                  <PlusCircleOutlined />
+                )}
+              </Button>
+            </Space>
+          </div>
+        );
+      },
     },
   ];
 
@@ -280,6 +356,7 @@ export default function MetadataEditorForm({
       sourceCatalogId: relation.sourceCatalogId,
       targetCatalogId: relation.targetCatalogId,
       type: relation.type,
+      action: "",
     };
   });
 
@@ -320,56 +397,60 @@ export default function MetadataEditorForm({
     {
       title: "Action",
       key: "action",
+      width: 90,
+      fixed: "right",
       render: (_: unknown, record: unknown) => {
         return (
-          <Space size="middle">
-            <Button
-              color="danger"
-              variant="solid"
-              loading={isDeletingRelation === (record as { key: string }).key}
-              disabled={
-                isDeletingRelation === undefined
-                  ? false
-                  : isDeletingRelation !== (record as { key: string }).key
-              }
-              onClick={async () => {
-                const relation = record as {
-                  key: string;
-                  projectId: string;
-                  source: string;
-                  sourceCatalogId: string;
-                };
-                setIsDeletingRelations(relation.key);
-                try {
-                  await deleteRelations({
-                    projectId: relation.projectId,
-                    catalogId: relation.sourceCatalogId,
-                    schemaName: relation.source.split(".")[1],
-                    tableName: relation.source.split(".")[2],
-                    relationId: relation.key,
-                  }).unwrap();
-
-                  openNotification(
-                    true,
-                    "Success",
-                    "Relation has been deleted successfully."
-                  )();
-                } catch (error) {
-                  openNotification(
-                    true,
-                    "Fail",
-                    (error as { data: { message: string } }).data.message,
-                    false
-                  )();
+          <div className="flex justify-center items-center">
+            <Space size="middle">
+              <Button
+                color="danger"
+                variant="solid"
+                loading={isDeletingRelation === (record as { key: string }).key}
+                disabled={
+                  isDeletingRelation === undefined
+                    ? false
+                    : isDeletingRelation !== (record as { key: string }).key
                 }
+                onClick={async () => {
+                  const relation = record as {
+                    key: string;
+                    projectId: string;
+                    source: string;
+                    sourceCatalogId: string;
+                  };
+                  setIsDeletingRelations(relation.key);
+                  try {
+                    await deleteRelations({
+                      projectId: relation.projectId,
+                      catalogId: relation.sourceCatalogId,
+                      schemaName: relation.source.split(".")[1],
+                      tableName: relation.source.split(".")[2],
+                      relationId: relation.key,
+                    }).unwrap();
 
-                onRelationDelete(relation.key);
-                setIsDeletingRelations(undefined);
-              }}
-            >
-              Delete
-            </Button>
-          </Space>
+                    openNotification(
+                      true,
+                      "Success",
+                      "Relation has been deleted successfully."
+                    )();
+                  } catch (error) {
+                    openNotification(
+                      true,
+                      "Fail",
+                      (error as { data: { message: string } }).data.message,
+                      false
+                    )();
+                  }
+
+                  onRelationDelete(relation.key);
+                  setIsDeletingRelations(undefined);
+                }}
+              >
+                Delete
+              </Button>
+            </Space>
+          </div>
         );
       },
     },
@@ -473,8 +554,8 @@ export default function MetadataEditorForm({
             }}
           />
         </Flex>
-        <Flex gap="small" vertical>
-          <Flex gap="small" justify="space-between">
+        <Flex gap="large" vertical>
+          <Flex gap="large" justify="space-between">
             <div className="text-gray-500">Relations</div>
             <Button
               type="primary"
@@ -487,7 +568,7 @@ export default function MetadataEditorForm({
           </Flex>
           <Table
             dataSource={relationsDataSource}
-            columns={relationsColumns}
+            columns={relationsColumns as ColumnsType}
             pagination={{ pageSize: 2, hideOnSinglePage: true, size: "small" }}
           />
         </Flex>
@@ -688,6 +769,128 @@ export default function MetadataEditorForm({
                 }
               }}
             />
+          )}
+        </Modal>
+        <Modal
+          title={
+            generatingCategoricalColumn?.isCategorical
+              ? "Remove Categorical Column Values?  "
+              : "Generate Categorical Column Values?"
+          }
+          open={isCategoricalColumnModalOpen}
+          centered
+          width={600}
+          destroyOnClose
+          onCancel={() => {
+            setIsCategoricalColumnModalOpen(false);
+            setGeneratingCategoricalColumn(undefined);
+          }}
+          okText={
+            generatingCategoricalColumn?.isCategorical ? "Remove" : "Generate"
+          }
+          okType="primary"
+          okButtonProps={{ loading: isGeneratingCategoricalColumn }}
+          onOk={async () => {
+            if (!table || !generatingCategoricalColumn) {
+              return;
+            }
+            if (generatingCategoricalColumn.isCategorical) {
+              setIsUpdatingMetadata(true);
+              try {
+                const clonedTable = cloneDeep(table);
+                if (!clonedTable) {
+                  return;
+                }
+                const column = clonedTable.metadata.columns?.find(
+                  (column) =>
+                    column.columnName === generatingCategoricalColumn.name
+                );
+
+                if (!column) {
+                  return;
+                }
+
+                column.isCategorical = false;
+                column.categoricalValues = [];
+
+                await updateMetadata({
+                  projectId: clonedTable.metadata.projectId,
+                  catalogId: clonedTable.metadata.catalogId,
+                  schemaName: clonedTable.metadata.schemaName,
+                  tableName: clonedTable.metadata.tableName,
+                  metadata: {
+                    tableDescription: clonedTable.metadata.tableDescription,
+                    columns: clonedTable.metadata.columns,
+                    useWithAI: clonedTable.metadata.useWithAI,
+                  },
+                }).unwrap();
+
+                openNotification(
+                  true,
+                  "Success",
+                  "Table metadata has been edited successfully."
+                )();
+              } catch (error) {
+                openNotification(
+                  true,
+                  "Fail",
+                  (error as { data: { message: string } }).data.message,
+                  false
+                )();
+              } finally {
+                setIsUpdatingMetadata(false);
+                setIsCategoricalColumnModalOpen(false);
+                setGeneratingCategoricalColumn(undefined);
+              }
+            } else {
+              try {
+                await generateCategoricalColumn({
+                  projectId: table.metadata.projectId
+                    ? table.metadata.projectId
+                    : "",
+                  catalogId: table.metadata.catalogId,
+                  schemaName: table.metadata.schemaName,
+                  tableName: table.metadata.tableName,
+                  columnName: generatingCategoricalColumn.key,
+                  limit: categoricalColumnLimit,
+                }).unwrap();
+
+                openNotification(
+                  true,
+                  "Success",
+                  "Successfully generated categorical column values."
+                )();
+              } catch {
+                openNotification(
+                  true,
+                  "Error",
+                  "Could not generate categorical column values.",
+                  false
+                )();
+              } finally {
+                setIsCategoricalColumnModalOpen(false);
+                setGeneratingCategoricalColumn(undefined);
+              }
+            }
+          }}
+        >
+          {generatingCategoricalColumn?.isCategorical ? (
+            ""
+          ) : (
+            <div className="flex flex-col justify-center items-start gap-3">
+              <div className="text-gray-500">Limit Value</div>
+              <Input
+                placeholder="Limit"
+                type="number"
+                value={categoricalColumnLimit}
+                onChange={(e) => {
+                  setCategoricalColumnLimit(Number.parseInt(e.target.value));
+                }}
+              />
+              <div className="text-gray-500">
+                {`SELECT DISTINCT ${generatingCategoricalColumn?.name} FROM ${table?.metadata.catalogQueryName}.${table?.metadata.schemaName}.${table?.metadata.tableName} LIMIT ${categoricalColumnLimit}`}
+              </div>
+            </div>
           )}
         </Modal>
       </Flex>
