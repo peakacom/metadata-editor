@@ -12,16 +12,19 @@ import {
   Space,
   Empty,
   Typography,
+  Modal,
 } from "antd";
 import { useRouter } from "next/navigation";
 import { Content } from "antd/es/layout/layout";
 import {
+  useAddGoldenSqlMutation,
   useDeleteGoldenSqlMutation,
   useGetGoldenSqlsQuery,
 } from "@/services/metadata";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import Link from "next/link";
+import GoldSQLForm from "@/components/GoldSQL/GoldSQLForm";
 
 export default function GoldSQL() {
   const router = useRouter();
@@ -35,9 +38,15 @@ export default function GoldSQL() {
 
   const [deleteGoldSql] = useDeleteGoldenSqlMutation();
 
+  const [isAddUpdateGoldSqlModalOpen, setIsAddUpdateGoldSqlModalOpen] =
+    useState<boolean>(false);
+
   const [deletingGoldSqlId, setDeletingGoldSqlId] = useState<
     string | undefined
   >();
+
+  const [addGoldSQL, { isLoading: isAddingGoldSQL }] =
+    useAddGoldenSqlMutation();
 
   const fieldsDataSource = goldenSqls?.result.map((goldenSql) => {
     return {
@@ -70,7 +79,7 @@ export default function GoldSQL() {
     {
       title: "Action",
       key: "action",
-      width: 150,
+      width: 200,
       render: (_: unknown, record: unknown) => {
         return (
           <Space size="middle">
@@ -188,19 +197,74 @@ export default function GoldSQL() {
               <Spin indicator={<LoadingOutlined spin />} size="large" />
             </div>
           ) : (
-            <Table
-              dataSource={fieldsDataSource}
-              columns={fieldColumns}
-              pagination={{
-                pageSize: 30,
-                hideOnSinglePage: true,
-                showSizeChanger: false,
-                size: "default",
-              }}
-            />
+            <div className="flex flex-col justify-center items-center gap-5">
+              <div className="flex justify-end items-end w-full gap-3">
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setIsAddUpdateGoldSqlModalOpen(true);
+                  }}
+                >
+                  Add Gold SQL
+                </Button>
+              </div>
+              <Table
+                dataSource={fieldsDataSource}
+                columns={fieldColumns}
+                pagination={{
+                  pageSize: 30,
+                  hideOnSinglePage: true,
+                  showSizeChanger: false,
+                  size: "default",
+                }}
+              />
+            </div>
           )}
         </Content>
       </Layout>
+
+      <Modal
+        title="Add Golden SQL"
+        open={isAddUpdateGoldSqlModalOpen}
+        width={1000}
+        centered
+        maskClosable={false}
+        destroyOnClose
+        footer={null}
+        onCancel={() => {
+          setIsAddUpdateGoldSqlModalOpen(false);
+        }}
+      >
+        <GoldSQLForm
+          onSubmit={async (values) => {
+            if (!projectInfo?.projectId) {
+              return;
+            }
+            try {
+              await addGoldSQL({
+                projectId: projectInfo.projectId,
+                prompt: values.prompt,
+                sql: values.sql,
+              }).unwrap();
+              openNotification(
+                true,
+                "Success",
+                "Successfully added Question/SQL pair as Gold SQL."
+              )();
+            } catch {
+              openNotification(
+                true,
+                "Error",
+                "Could not add to Gold SQL.",
+                false
+              )();
+            } finally {
+              setIsAddUpdateGoldSqlModalOpen(false);
+            }
+          }}
+          isAddingUpdatingGoldSql={isAddingGoldSQL}
+        />
+      </Modal>
     </Content>
   );
 }
