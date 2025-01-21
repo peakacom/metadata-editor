@@ -4,8 +4,15 @@ import "ace-builds/src-noconflict/theme-tomorrow";
 import "ace-builds/src-noconflict/ext-language_tools";
 import { Button, Divider, Flex, Form, FormProps } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import { useEffect } from "react";
+import { format } from "sql-formatter";
 
 export interface GoldSQLFormProps {
+  goldSql?: {
+    key: string;
+    question: string;
+    query: string;
+  };
   isAddingUpdatingGoldSql: boolean;
   onSubmit: (values: FormValues) => void;
 }
@@ -16,6 +23,7 @@ export interface FormValues {
 }
 
 export default function GoldSQLForm({
+  goldSql,
   isAddingUpdatingGoldSql,
   onSubmit,
 }: GoldSQLFormProps) {
@@ -24,6 +32,15 @@ export default function GoldSQLForm({
   const onFinish: FormProps<FormValues>["onFinish"] = (values) => {
     onSubmit(values);
   };
+
+  useEffect(() => {
+    if (goldSql) {
+      form.setFieldsValue({
+        prompt: goldSql.question,
+        sql: format(goldSql.query, { language: "trino" }),
+      });
+    }
+  }, [goldSql, form]);
 
   return (
     <Form form={form} preserve={false} layout="vertical" onFinish={onFinish}>
@@ -68,7 +85,7 @@ export default function GoldSQLForm({
             htmlType="submit"
             loading={isAddingUpdatingGoldSql}
           >
-            Add Gold SQL
+            {goldSql ? "Update Gold SQL" : "Add Gold SQL"}
           </Button>
         </Form.Item>
       </Flex>

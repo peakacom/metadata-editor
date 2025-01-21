@@ -36,7 +36,8 @@ export default function GoldSQL() {
       projectId: projectInfo?.projectId ? projectInfo.projectId : "",
     });
 
-  const [deleteGoldSql] = useDeleteGoldenSqlMutation();
+  const [deleteGoldSql, { isLoading: isDeletingGoldSQl }] =
+    useDeleteGoldenSqlMutation();
 
   const [isAddUpdateGoldSqlModalOpen, setIsAddUpdateGoldSqlModalOpen] =
     useState<boolean>(false);
@@ -47,6 +48,15 @@ export default function GoldSQL() {
 
   const [addGoldSQL, { isLoading: isAddingGoldSQL }] =
     useAddGoldenSqlMutation();
+
+  const [updatedSql, setUpdatedSql] = useState<{
+    key: string;
+    question: string;
+    query: string;
+  }>();
+
+  const [isDeleteGoldSQLModalOpen, setIsDeleteGoldSQLModalOpen] =
+    useState<boolean>(false);
 
   const fieldsDataSource = goldenSqls?.result.map((goldenSql) => {
     return {
@@ -84,6 +94,22 @@ export default function GoldSQL() {
         return (
           <Space size="middle">
             <Button
+              color="primary"
+              variant="solid"
+              onClick={async () => {
+                const sql = record as {
+                  key: string;
+                  question: string;
+                  query: string;
+                };
+
+                setUpdatedSql(sql);
+                setIsAddUpdateGoldSqlModalOpen(true);
+              }}
+            >
+              Update
+            </Button>
+            <Button
               color="danger"
               variant="solid"
               loading={deletingGoldSqlId === (record as { key: string }).key}
@@ -99,28 +125,7 @@ export default function GoldSQL() {
                   query: string;
                 };
                 setDeletingGoldSqlId(sql.key);
-                try {
-                  await deleteGoldSql({
-                    projectId: projectInfo?.projectId
-                      ? projectInfo.projectId
-                      : "",
-                    id: sql.key,
-                  }).unwrap();
-
-                  openNotification(
-                    true,
-                    "Success",
-                    "Gold SQL has been deleted successfully."
-                  )();
-                  setDeletingGoldSqlId(undefined);
-                } catch (error) {
-                  openNotification(
-                    true,
-                    "Fail",
-                    (error as { data: { message: string } }).data.message,
-                    false
-                  )();
-                }
+                setIsDeleteGoldSQLModalOpen(true);
               }}
             >
               Delete
@@ -202,6 +207,7 @@ export default function GoldSQL() {
                 <Button
                   type="primary"
                   onClick={() => {
+                    setUpdatedSql(undefined);
                     setIsAddUpdateGoldSqlModalOpen(true);
                   }}
                 >
@@ -224,7 +230,7 @@ export default function GoldSQL() {
       </Layout>
 
       <Modal
-        title="Add Golden SQL"
+        title={updatedSql ? "Update Gold SQL" : "Add Gold SQL"}
         open={isAddUpdateGoldSqlModalOpen}
         width={1000}
         centered
@@ -236,34 +242,108 @@ export default function GoldSQL() {
         }}
       >
         <GoldSQLForm
+          goldSql={updatedSql}
           onSubmit={async (values) => {
             if (!projectInfo?.projectId) {
               return;
             }
-            try {
-              await addGoldSQL({
-                projectId: projectInfo.projectId,
-                prompt: values.prompt,
-                sql: values.sql,
-              }).unwrap();
-              openNotification(
-                true,
-                "Success",
-                "Successfully added Question/SQL pair as Gold SQL."
-              )();
-            } catch {
-              openNotification(
-                true,
-                "Error",
-                "Could not add to Gold SQL.",
-                false
-              )();
-            } finally {
-              setIsAddUpdateGoldSqlModalOpen(false);
+            if (updatedSql) {
+              try {
+                await deleteGoldSql({
+                  projectId: projectInfo.projectId,
+                  id: updatedSql.key,
+                }).unwrap();
+
+                await addGoldSQL({
+                  projectId: projectInfo.projectId,
+                  prompt: values.prompt,
+                  sql: values.sql,
+                }).unwrap();
+                openNotification(
+                  true,
+                  "Success",
+                  "Successfully updated Question/SQL pair as Gold SQL."
+                )();
+              } catch {
+                openNotification(
+                  true,
+                  "Error",
+                  "Could not update Gold SQL.",
+                  false
+                )();
+              } finally {
+                setIsAddUpdateGoldSqlModalOpen(false);
+              }
+            } else {
+              try {
+                await addGoldSQL({
+                  projectId: projectInfo.projectId,
+                  prompt: values.prompt,
+                  sql: values.sql,
+                }).unwrap();
+                openNotification(
+                  true,
+                  "Success",
+                  "Successfully added Question/SQL pair as Gold SQL."
+                )();
+              } catch {
+                openNotification(
+                  true,
+                  "Error",
+                  "Could not add to Gold SQL.",
+                  false
+                )();
+              } finally {
+                setIsAddUpdateGoldSqlModalOpen(false);
+              }
             }
           }}
           isAddingUpdatingGoldSql={isAddingGoldSQL}
         />
+      </Modal>
+      <Modal
+        title={"Delete Gold SQL?"}
+        open={isDeleteGoldSQLModalOpen}
+        centered
+        width={450}
+        destroyOnClose
+        onCancel={() => {
+          setIsDeleteGoldSQLModalOpen(false);
+          setDeletingGoldSqlId(undefined);
+        }}
+        okText="Delete"
+        okType="danger"
+        okButtonProps={{ loading: isDeletingGoldSQl }}
+        onOk={async () => {
+          if (!projectInfo || !deletingGoldSqlId) {
+            return;
+          }
+
+          try {
+            await deleteGoldSql({
+              projectId: projectInfo?.projectId ? projectInfo.projectId : "",
+              id: deletingGoldSqlId,
+            }).unwrap();
+
+            openNotification(
+              true,
+              "Success",
+              "Gold SQL has been deleted successfully."
+            )();
+          } catch {
+            openNotification(
+              true,
+              "Error",
+              "Could not delete  Gold SQL.",
+              false
+            )();
+          } finally {
+            setIsDeleteGoldSQLModalOpen(false);
+            setDeletingGoldSqlId(undefined);
+          }
+        }}
+      >
+        Do you want to delete Gold SQL?
       </Modal>
     </Content>
   );

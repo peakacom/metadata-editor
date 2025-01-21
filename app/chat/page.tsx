@@ -375,7 +375,7 @@ export default function Chat() {
         )}
       </Modal>
       <Modal
-        title={"Add to Golden SQL"}
+        title={"Add to Gold SQL"}
         open={isAddGoldSQLModalOpen}
         centered
         width={450}
