@@ -46,6 +46,7 @@ export default function GenerateSemanticsForm({
       <Form.Item
         label="Query Limit For Sample Data"
         name={"limit"}
+        initialValue={3}
         required
         rules={[
           {
