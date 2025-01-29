@@ -650,7 +650,7 @@ export default function MetadataEditorForm({
         <Modal
           title="Generate Semantics"
           open={isGenerateSemanticsModalOpen}
-          width={1000}
+          width={1200}
           centered
           maskClosable={false}
           destroyOnClose

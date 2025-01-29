@@ -33,6 +33,7 @@ export interface DBMetaDataColumn {
   lineage?: DBMetaDataColumnLineage[];
   isCategorical?: boolean;
   categoricalValues?: string[];
+  sampleValues?: unknown[];
 }
 
 export interface DBMetaDataColumnLineage {

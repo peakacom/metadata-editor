@@ -46,6 +46,7 @@ export default function GenerateSemanticsResult({
         name: column.columnName,
         dataType: column.dataType,
         columnDescription: column.columnDescription,
+        sampleValues: column.sampleValues,
       };
     });
 
@@ -150,6 +151,21 @@ export default function GenerateSemanticsResult({
           onChange={(e) => {
             onColumnDescriptionChange(data.key, e.target.value);
           }}
+          id={text}
+        />
+      ),
+    },
+    {
+      title: "Sample Values",
+      dataIndex: "sampleValues",
+      key: "sampleValues",
+      ellipsis: true,
+      render: (text: string) => (
+        <Input
+          placeholder="Sample Values"
+          readOnly={true}
+          value={text}
+          disabled={isUpdatingMetadata}
           id={text}
         />
       ),
