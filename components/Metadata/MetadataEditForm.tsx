@@ -753,6 +753,7 @@ export default function MetadataEditorForm({
                       schemaName: table.metadata.schemaName,
                       tableName: table.metadata.tableName,
                       initialPrompt: values.initialPrompt,
+                      limit: Number.parseInt(values.limit),
                     }).unwrap();
 
                     setSemanticMetadata(response.metadata);

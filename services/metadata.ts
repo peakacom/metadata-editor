@@ -96,7 +96,7 @@ export const metadataApi = createApi({
       query: (args) => ({
         url: `metadata/${args.projectId}/semantics/${args.catalogId}/${args.schemaName}/${args.tableName}`,
         method: "POST",
-        body: { initialPrompt: args.initialPrompt },
+        body: { initialPrompt: args.initialPrompt, limit: args.limit },
       }),
     }),
     generateSampleQuestions: builder.query<
@@ -191,6 +191,7 @@ export interface CreateSemanticsQueryArgs {
   schemaName: string;
   tableName: string;
   initialPrompt: string;
+  limit: number;
 }
 
 export interface CreateSemanticsResult {
