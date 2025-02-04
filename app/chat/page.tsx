@@ -487,9 +487,8 @@ export default function Chat() {
                                 return;
                               }
 
-                              setSelectedGoldSqlQuestion(task.output.text);
+                              setSelectedGoldSqlQuestion(task.message);
                               setSelectedGoldSqlQuery(task.output.query);
-
                               setIsGoldSQLModalOpen(true);
                             }}
                           >
