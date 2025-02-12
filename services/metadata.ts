@@ -6,14 +6,14 @@ import {
   DBMetaRelationship,
 } from "./types";
 import { omit } from "lodash";
-import { PARTNER_API_BASE_URL } from "@/config/config";
+import { getBaseUrl } from "@/config/config";
 
 import type { RootState } from "./store";
 
 export const metadataApi = createApi({
   reducerPath: "metadataApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: PARTNER_API_BASE_URL,
+    baseUrl: getBaseUrl(),
     prepareHeaders: (headers, { getState }) => {
       const apiKeyState = (getState() as RootState).apiKey;
       if (apiKeyState) {
