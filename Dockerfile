@@ -1,4 +1,4 @@
-FROM node:23-slim AS build
+FROM node:23-alpine AS build
 WORKDIR /app
 
 COPY . .
@@ -7,7 +7,7 @@ RUN npm ci
 RUN npm run build
 
 
-FROM node:23-slim AS runtime
+FROM node:23-alpine AS runtime
 WORKDIR /app
 
 RUN addgroup -g 1001 -S nextjs
