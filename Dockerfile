@@ -23,4 +23,4 @@ COPY --from=build --chown=nextjs:nodejs /app/package-lock.json ./
 EXPOSE 3000
 USER nextjs
 
-CMD [ "next", "start" ]
+CMD ["npm", "run", "start"]
