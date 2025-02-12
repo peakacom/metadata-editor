@@ -10,9 +10,13 @@ RUN npm run build
 FROM node:23-slim AS runtime
 WORKDIR /app
 
-COPY --from=build --chown=1001:1001 /app/.next ./.next
-COPY --from=build --chown=1001:1001 /app/node_modules ./node_modules
+RUN addgroup -g 1001 -S nextjs
+RUN adduser -S nextjs -u 1001
+
+COPY --from=build --chown=nextjs:nextjs /app/.next ./.next
+COPY --from=build --chown=nextjs:nextjs /app/node_modules ./node_modules
 
 EXPOSE 3000
+USER nextjs
 
 CMD [ "next", "start" ]
