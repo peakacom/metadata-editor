@@ -635,7 +635,13 @@ export default function MetadataEditorForm({
         <Modal
           title="Column Lineage"
           open={isColumnLineageModalOpen}
-          width={1000}
+          width={
+            selectedColumn &&
+            selectedColumn.lineage &&
+            selectedColumn?.lineage?.length > 4
+              ? 3000
+              : 1000
+          }
           centered
           maskClosable={false}
           destroyOnClose
