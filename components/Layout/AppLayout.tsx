@@ -23,11 +23,15 @@ export default function AppLayout({
   const { data: projectInfo, isLoading } = useGetProjectInfoQuery({});
 
   useEffect(() => {
+    console.log("Environment:" + getEnvironment());
     if (getEnvironment() !== Environment.TEST) {
+      console.log("Zipy init start");
       zipy
         .init(ZIPY_KEY)
         .then(() => {
+          console.log("Zipy init success");
           if (projectInfo) {
+            console.log("Zipy fail");
             zipy.identify(projectInfo.email, {
               email: projectInfo.email,
               customerName: `Project Name: ${projectInfo.projectName}`,
