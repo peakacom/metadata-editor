@@ -26,7 +26,8 @@
     "react-highlight-words": "^0.20.0",
     "react-redux": "^9.1.2",
     "sql-formatter": "^15.4.6",
-    "tailwind-merge": "^2.5.4"
+    "tailwind-merge": "^2.5.4",
+    "zipyai": "^1.7.38"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.13",
