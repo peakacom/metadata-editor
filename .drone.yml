@@ -44,6 +44,14 @@ steps:
     environment:
       CONTAINER_NAME: metadata-editor
       REVISION: ${DRONE_COMMIT_SHA}
+      AZURE_CLIENT_ID:
+        from_secret: AZURE_CLIENT_ID
+      AZURE_CLIENT_SECRET:
+        from_secret: AZURE_CLIENT_SECRET
+      AZURE_TENANT_ID:
+        from_secret: AZURE_TENANT_ID
+      AZURE_RESOURCE_GROUP:
+        from_secret: AZURE_RESOURCE_GROUP
     volumes:
       - name: artifacts
         path: /artifacts
