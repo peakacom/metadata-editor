@@ -9,6 +9,9 @@ import { UserOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import styles from "@/components/Layout/app.layout.module.css";
+import { useEffect } from "react";
+import { Environment, getEnvironment, ZIPY_KEY } from "@/config/config";
+import zipy from "zipyai";
 
 export default function AppLayout({
   children,
@@ -18,6 +21,22 @@ export default function AppLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { data: projectInfo, isLoading } = useGetProjectInfoQuery({});
+
+  useEffect(() => {
+    if (getEnvironment() !== Environment.TEST) {
+      zipy
+        .init(ZIPY_KEY)
+        .then(() => {
+          if (projectInfo) {
+            zipy.identify(projectInfo.email, {
+              email: projectInfo.email,
+              customerName: `Project Name: ${projectInfo.projectName}`,
+            });
+          }
+        })
+        .catch((err) => console.error(err));
+    }
+  }, [projectInfo]);
 
   if (isLoading) {
     return (
