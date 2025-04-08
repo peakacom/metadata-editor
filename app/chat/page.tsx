@@ -421,7 +421,7 @@ export default function Chat() {
           borderRadius: borderRadiusLG,
         }}
       >
-        <Sider style={{ background: "#fafafa" }} width={300}>
+        <Sider style={{ background: "#fafafa" }} width={300} className="p-3">
           <Flex vertical gap="large" className="w-full h-full p-3">
             <Button
               style={{ backgroundColor: "transparent" }}

@@ -19,6 +19,7 @@ import {
   Form,
   FormProps,
   Input,
+  Modal,
   notification,
   Spin,
   Typography,
@@ -41,6 +42,9 @@ export default function Settings() {
   const [form] = Form.useForm();
   const [newApiKeyEntered, setNewApiKeyEntered] = useState(false);
   const projectInfos = useProjectInfos();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteAll, setIsDeleteAll] = useState(false);
+  const [deletedAPIKey, setDeletedAPIKey] = useState("");
 
   const onFinish: FormProps<SettingsFormValues>["onFinish"] = async (
     values
@@ -131,7 +135,17 @@ export default function Settings() {
           <Divider />
 
           <Form.Item label={null}>
-            <Flex justify="end" gap="large">
+            <Flex justify="space-between" gap="large">
+              <Button
+                color="danger"
+                variant="solid"
+                onClick={async () => {
+                  setIsDeleteModalOpen(true);
+                  setIsDeleteAll(true);
+                }}
+              >
+                Delete All API Keys
+              </Button>
               <Button
                 type="primary"
                 htmlType="submit"
@@ -181,34 +195,9 @@ export default function Settings() {
                       color="danger"
                       variant="solid"
                       onClick={async () => {
-                        if (!apiKeyState.apiKeys) {
-                          return;
-                        }
-
-                        const apiKeys = cloneDeep(apiKeyState.apiKeys).filter(
-                          (apiKey) => apiKey !== key
-                        );
-
-                        if (key === apiKeyState.selectedApiKey) {
-                          if (apiKeys.length > 0) {
-                            dispatch(setSelectedApiKey(apiKeys[0]));
-                          } else {
-                            dispatch(setSelectedApiKey(null));
-                          }
-                        }
-
-                        dispatch(setApiKeys(apiKeys));
-
-                        openNotification(
-                          true,
-                          "Success",
-                          "API Key deleted successfully."
-                        )();
-
-                        dispatch(resetSchemaViewer());
-                        dispatch(metadataApi.util.resetApiState());
-                        dispatch(aiApi.util.resetApiState());
-                        dispatch(partnerApi.util.resetApiState());
+                        setIsDeleteModalOpen(true);
+                        setIsDeleteAll(false);
+                        setDeletedAPIKey(key);
                       }}
                     >
                       Delete
@@ -228,6 +217,70 @@ export default function Settings() {
         </>
       )}
       <Spin spinning={!projectInfos || isSavingAPIKey} fullscreen />
+      <Modal
+        title={"Delete"}
+        open={isDeleteModalOpen}
+        centered
+        width={450}
+        destroyOnClose
+        onCancel={() => {
+          setIsDeleteModalOpen(false);
+          setIsDeleteAll(false);
+          setDeletedAPIKey("");
+        }}
+        okText={"Delete"}
+        okType={"danger"}
+        onOk={async () => {
+          if (isDeleteAll) {
+            dispatch(setApiKeys([]));
+            dispatch(setSelectedApiKey(null));
+            dispatch(resetSchemaViewer());
+            dispatch(metadataApi.util.resetApiState());
+            dispatch(aiApi.util.resetApiState());
+            openNotification(
+              true,
+              "Success",
+              "All API Keys deleted successfully."
+            )();
+          } else {
+            if (!apiKeyState.apiKeys) {
+              return;
+            }
+
+            const apiKeys = cloneDeep(apiKeyState.apiKeys).filter(
+              (apiKey) => apiKey !== deletedAPIKey
+            );
+
+            if (deletedAPIKey === apiKeyState.selectedApiKey) {
+              if (apiKeys.length > 0) {
+                dispatch(setSelectedApiKey(apiKeys[0]));
+              } else {
+                dispatch(setSelectedApiKey(null));
+              }
+            }
+
+            dispatch(setApiKeys(apiKeys));
+
+            openNotification(
+              true,
+              "Success",
+              "API Key deleted successfully."
+            )();
+
+            dispatch(resetSchemaViewer());
+            dispatch(metadataApi.util.resetApiState());
+            dispatch(aiApi.util.resetApiState());
+            dispatch(partnerApi.util.resetApiState());
+          }
+          setIsDeleteModalOpen(false);
+          setIsDeleteAll(false);
+          setDeletedAPIKey("");
+        }}
+      >
+        {isDeleteAll
+          ? "Do you really want to delete All API Keys?"
+          : "Do you really want to delete API Key?"}
+      </Modal>
     </div>
   );
 }

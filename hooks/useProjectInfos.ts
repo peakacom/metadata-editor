@@ -20,8 +20,12 @@ export default function useProjectInfos() {
       const fetchedProjectInfos: { [key: string]: ProjectInfo } = {};
 
       for (const apiKey of apiKeys) {
-        const projectInfo = await getProjectInfo({ apiKey: apiKey }).unwrap();
-        fetchedProjectInfos[apiKey] = projectInfo;
+        try {
+          const projectInfo = await getProjectInfo({ apiKey: apiKey }).unwrap();
+          fetchedProjectInfos[apiKey] = projectInfo;
+        } catch {
+          // Nothing to do here
+        }
       }
 
       setProjectInfos(fetchedProjectInfos);
