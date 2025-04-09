@@ -607,6 +607,11 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
           },
         }).unwrap();
       }
+      openNotification(
+        true,
+        "Success",
+        "AI usage has been edited successfully."
+      )();
     } catch (error) {
       openNotification(
         true,
@@ -619,11 +624,6 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
       setSelectedCatalogForBulkEdit(undefined);
       setSelectedSchemaForBulkEdit(undefined);
       setEditingMetadata(false);
-      openNotification(
-        true,
-        "Success",
-        "AI usage has been edited successfully."
-      )();
     }
   }
 }
