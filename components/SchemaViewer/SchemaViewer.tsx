@@ -21,6 +21,7 @@ import {
   Drawer,
   GetProps,
   Input,
+  Modal,
   notification,
   Result,
   Select,
@@ -34,7 +35,7 @@ import {
   Path,
 } from "@/services/types";
 import MetadataEditorForm from "../Metadata/MetadataEditForm";
-import { cloneDeep } from "lodash";
+import { cloneDeep, set } from "lodash";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -44,6 +45,7 @@ import {
   setSelectedSchema,
 } from "@/services/schemaViewerSlice";
 import { ID_SEPARATOR_CHAR } from "@/config/config";
+import SchemaSelector from "../SchemaSelector/SchemaSelector";
 
 const { Search } = Input;
 type SearchProps = GetProps<typeof Input.Search>;
@@ -72,11 +74,13 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
   const router = useRouter();
 
   const [updateMetadata] = useUpdateMetadataMutation();
+
   const miniMapNodeColor = "#111318";
   const miniMapMaskColor = "rgb(237, 237, 237, .8)";
   const reactFlowInstance = useReactFlow();
 
   const [api, contextHolder] = notification.useNotification();
+  const [isEditAIUsageModalOpen, setIsEditAIUsageModalOpen] = useState(false);
 
   const openNotification =
     (
@@ -109,11 +113,18 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
     }),
     []
   );
+
   const [catalogs, setCatalogs] =
     useState<{ value: string; label: string }[]>();
   const [schemas, setSchemas] = useState<{ value: string; label: string }[]>();
   const selectedCatalog = useSelector(selectSelectedCatalog);
   const selectedSchema = useSelector(selectSelectedSchema);
+  const [selectedCatalogForBulkEdit, setSelectedCatalogForBulkEdit] = useState<
+    string | undefined
+  >();
+  const [selectedSchemaForBulkEdit, setSelectedSchemaForBulkEdit] = useState<
+    string | undefined
+  >();
   const dispatch = useDispatch();
 
   const [searchValue, setSearchValue] = useState<string>("");
@@ -325,7 +336,7 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
   return (
     <div className="flex flex-col justify-center items-center w-full h-full">
       {contextHolder}
-      <div className="flex justify-center items-center gap-6 p-6 w-[800px]">
+      <div className="flex justify-center items-center gap-6 p-6 w-[900px]">
         <Select
           style={{ width: "30%" }}
           showSearch
@@ -361,6 +372,14 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
           allowClear
           onSearch={onSearch}
         />
+        <Button
+          type="primary"
+          onClick={() => {
+            setIsEditAIUsageModalOpen(true);
+          }}
+        >
+          Configure AI Access in Bulk
+        </Button>
       </div>
       <div className="w-full h-full">
         <ReactFlow
@@ -514,6 +533,99 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
           }}
         />
       </Drawer>
+      <Modal
+        title={"Enable/Disable AI Access in Bulk"}
+        open={isEditAIUsageModalOpen}
+        centered
+        width={450}
+        destroyOnClose
+        onCancel={async () => {
+          setIsEditAIUsageModalOpen(false);
+          setSelectedCatalogForBulkEdit(undefined);
+          setSelectedSchemaForBulkEdit(undefined);
+        }}
+        cancelText={"Disable"}
+        cancelButtonProps={{
+          color: "danger",
+          variant: "solid",
+          onClick: async () => {
+            await bulkEditAIUsage(false);
+          },
+          loading: editingMetadata,
+        }}
+        okText={"Enable"}
+        okType={"primary"}
+        onOk={async () => {
+          await bulkEditAIUsage(true);
+        }}
+        okButtonProps={{
+          loading: editingMetadata,
+        }}
+      >
+        <div className="p-6">
+          <SchemaSelector
+            projectId={projectId}
+            onCatalogSelected={(catalogId) => {
+              setSelectedCatalogForBulkEdit(catalogId);
+            }}
+            onSchemaSelected={(catalogId, schemaName) => {
+              setSelectedCatalogForBulkEdit(catalogId);
+              setSelectedSchemaForBulkEdit(schemaName);
+            }}
+          />
+        </div>
+      </Modal>
     </div>
   );
+
+  async function bulkEditAIUsage(useWithAI: boolean) {
+    if (!selectedCatalogForBulkEdit) {
+      openNotification(
+        true,
+        "Invalid Selection",
+        "You need to select at least one catalog or schema for bulk edit.",
+        false
+      )();
+      return;
+    }
+
+    try {
+      setEditingMetadata(true);
+      if (selectedCatalogForBulkEdit && !selectedSchemaForBulkEdit) {
+        await updateMetadata({
+          projectId: projectId,
+          catalogId: selectedCatalogForBulkEdit,
+          metadata: {
+            useWithAI,
+          },
+        }).unwrap();
+      } else if (selectedCatalogForBulkEdit && selectedSchemaForBulkEdit) {
+        await updateMetadata({
+          projectId: projectId,
+          catalogId: selectedCatalogForBulkEdit,
+          schemaName: selectedSchemaForBulkEdit,
+          metadata: {
+            useWithAI,
+          },
+        }).unwrap();
+      }
+    } catch (error) {
+      openNotification(
+        true,
+        "Fail",
+        (error as { data: { message: string } }).data.message,
+        false
+      )();
+    } finally {
+      setIsEditAIUsageModalOpen(false);
+      setSelectedCatalogForBulkEdit(undefined);
+      setSelectedSchemaForBulkEdit(undefined);
+      setEditingMetadata(false);
+      openNotification(
+        true,
+        "Success",
+        "AI usage has been edited successfully."
+      )();
+    }
+  }
 }

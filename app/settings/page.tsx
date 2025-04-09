@@ -57,7 +57,7 @@ export default function Settings() {
 
     try {
       setIsSavingAPIKey(true);
-      dispatch(setApiKey(values.apiKey));
+      dispatch(setApiKey(values.apiKey.trim()));
       if (!apiKeyState.selectedApiKey) {
         dispatch(setSelectedApiKey(values.apiKey));
         dispatch(resetSchemaViewer());

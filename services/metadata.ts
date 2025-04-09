@@ -83,7 +83,7 @@ export const metadataApi = createApi({
     }),
     updateMetadata: builder.mutation<DBMetaData, UpdateMetadataQueryArgs>({
       query: (args) => ({
-        url: `metadata/${args.projectId}/${args.catalogId}/${args.schemaName}/${args.tableName}`,
+        url: buildUpdateMetadataUrl(args),
         method: "PUT",
         body: args.metadata,
       }),
@@ -174,8 +174,8 @@ export interface DeleteRelationQueryArgs {
 export interface UpdateMetadataQueryArgs {
   projectId: string;
   catalogId: string;
-  schemaName: string;
-  tableName: string;
+  schemaName?: string;
+  tableName?: string;
   metadata: UpdatedMetadata;
 }
 
@@ -255,6 +255,15 @@ export interface GenerateCategoricalColumnQueryArgs {
   limit: number;
 }
 
+function buildUpdateMetadataUrl(args: UpdateMetadataQueryArgs) {
+  if (args.schemaName && args.tableName) {
+    return `metadata/${args.projectId}/${args.catalogId}/${args.schemaName}/${args.tableName}`;
+  } else if (args.schemaName) {
+    return `metadata/${args.projectId}/${args.catalogId}/${args.schemaName}`;
+  } else {
+    return `metadata/${args.projectId}/${args.catalogId}`;
+  }
+}
 export const {
   useGenerateCategoricalColumnMutation,
   useGetGoldenSqlsQuery,
