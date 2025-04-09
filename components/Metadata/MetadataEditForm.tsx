@@ -45,8 +45,6 @@ import { cloneDeep } from "lodash";
 export interface MetadataEditorFormProps {
   table?: DBMetaDataContainer;
   relations?: DBMetaRelationship[];
-  selectedCatalog?: string;
-  selectedSchema?: string;
   onTableDescriptionChange: (description: string) => void;
   onPrimaryKeyChange: (primaryKey: string) => void;
   onColumnDescriptionChange: (column: string, description: string) => void;
@@ -58,8 +56,6 @@ export interface MetadataEditorFormProps {
 export default function MetadataEditorForm({
   table,
   relations,
-  selectedCatalog,
-  selectedSchema,
   onTableDescriptionChange,
   onPrimaryKeyChange,
   onColumnDescriptionChange,

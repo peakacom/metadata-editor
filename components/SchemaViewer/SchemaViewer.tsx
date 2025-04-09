@@ -516,8 +516,6 @@ export default function SchemaViewer({ projectId }: SchemaViewerProps) {
             });
             setSelectedTableRelations(clonedSelectedTable);
           }}
-          selectedCatalog={selectedCatalog}
-          selectedSchema={selectedSchema}
           onRelationAdd={(relation: DBMetaRelationship) => {
             const clonedSelectedTable = cloneDeep(selectedTableRelations);
             clonedSelectedTable?.push(relation);
