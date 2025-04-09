@@ -35,7 +35,7 @@ import {
   Path,
 } from "@/services/types";
 import MetadataEditorForm from "../Metadata/MetadataEditForm";
-import { cloneDeep, set } from "lodash";
+import { cloneDeep } from "lodash";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import {
