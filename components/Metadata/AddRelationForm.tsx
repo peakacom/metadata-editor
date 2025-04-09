@@ -5,8 +5,6 @@ import type { FormProps } from "antd";
 
 export interface AddRelationFormProps {
   projectId?: string;
-  selectedCatalog?: string;
-  selectedSchema?: string;
   initialSelectedModel?: string;
   isAddingRelation: boolean;
   onSubmit: (values: FormValues) => void;
@@ -20,8 +18,6 @@ export interface FormValues {
 
 export default function AddRelationForm({
   projectId,
-  selectedCatalog,
-  selectedSchema,
   initialSelectedModel,
   isAddingRelation,
   onSubmit,
@@ -47,12 +43,6 @@ export default function AddRelationForm({
       const uniqueTables = new Map<string, { value: string; label: string }>();
       tables.metadata.forEach((table) => {
         const metadata = table.metadata;
-        if (
-          (selectedCatalog && metadata.catalogId !== selectedCatalog) ||
-          (selectedSchema && metadata.schemaName !== selectedSchema)
-        ) {
-          return;
-        }
         const key = `${metadata.projectId}.${metadata.catalogId}.${metadata.schemaName}.${metadata.tableName}`;
         const value = `${metadata.catalogQueryName}.${metadata.schemaName}.${metadata.tableName}`;
         if (!uniqueTables.has(key)) {
@@ -61,7 +51,7 @@ export default function AddRelationForm({
       });
       setModels(Array.from(uniqueTables.values()));
     }
-  }, [selectedCatalog, selectedSchema, tables]);
+  }, [tables]);
 
   useEffect(() => {
     if (selectedFromModel && tables) {

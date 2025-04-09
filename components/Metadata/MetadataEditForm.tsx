@@ -586,8 +586,6 @@ export default function MetadataEditorForm({
         >
           <AddRelationForm
             projectId={table?.metadata?.projectId}
-            selectedCatalog={selectedCatalog}
-            selectedSchema={selectedSchema}
             initialSelectedModel={`${table?.metadata.projectId}.${table?.metadata.catalogId}.${table?.metadata.schemaName}.${table?.metadata.tableName}`}
             onSubmit={async (values: FormValues) => {
               const fromSplit = values.from.split(".");
