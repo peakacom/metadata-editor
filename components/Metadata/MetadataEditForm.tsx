@@ -45,8 +45,6 @@ import { cloneDeep } from "lodash";
 export interface MetadataEditorFormProps {
   table?: DBMetaDataContainer;
   relations?: DBMetaRelationship[];
-  selectedCatalog?: string;
-  selectedSchema?: string;
   onTableDescriptionChange: (description: string) => void;
   onPrimaryKeyChange: (primaryKey: string) => void;
   onColumnDescriptionChange: (column: string, description: string) => void;
@@ -58,8 +56,6 @@ export interface MetadataEditorFormProps {
 export default function MetadataEditorForm({
   table,
   relations,
-  selectedCatalog,
-  selectedSchema,
   onTableDescriptionChange,
   onPrimaryKeyChange,
   onColumnDescriptionChange,
@@ -586,8 +582,6 @@ export default function MetadataEditorForm({
         >
           <AddRelationForm
             projectId={table?.metadata?.projectId}
-            selectedCatalog={selectedCatalog}
-            selectedSchema={selectedSchema}
             initialSelectedModel={`${table?.metadata.projectId}.${table?.metadata.catalogId}.${table?.metadata.schemaName}.${table?.metadata.tableName}`}
             onSubmit={async (values: FormValues) => {
               const fromSplit = values.from.split(".");
