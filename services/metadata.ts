@@ -139,7 +139,17 @@ export const metadataApi = createApi({
       query: (args) => ({
         url: `metadata/${args.projectId}/categorical/${args.catalogId}/${args.schemaName}/${args.tableName}/${args.columnName}`,
         method: "PUT",
-        body: { limit: args.limit },
+        body: { limit: args.limit, frequency: args.frequency },
+      }),
+      invalidatesTags: ["Metadata"],
+    }),
+    deleteCategoricalColumn: builder.mutation<
+      unknown,
+      DeleteCategoricalColumnQueryArgs
+    >({
+      query: (args) => ({
+        url: `metadata/${args.projectId}/categorical/${args.catalogId}/${args.schemaName}/${args.tableName}/${args.columnName}`,
+        method: "DELETE",
       }),
       invalidatesTags: ["Metadata"],
     }),
@@ -253,6 +263,15 @@ export interface GenerateCategoricalColumnQueryArgs {
   tableName: string;
   columnName: string;
   limit: number;
+  frequency: string;
+}
+
+export interface DeleteCategoricalColumnQueryArgs {
+  projectId: string;
+  catalogId: string;
+  schemaName: string;
+  tableName: string;
+  columnName: string;
 }
 
 function buildUpdateMetadataUrl(args: UpdateMetadataQueryArgs) {
@@ -266,6 +285,7 @@ function buildUpdateMetadataUrl(args: UpdateMetadataQueryArgs) {
 }
 export const {
   useGenerateCategoricalColumnMutation,
+  useDeleteCategoricalColumnMutation,
   useGetGoldenSqlsQuery,
   useAddGoldenSqlMutation,
   useDeleteGoldenSqlMutation,
