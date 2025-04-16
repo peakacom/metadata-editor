@@ -782,7 +782,7 @@ export default function MetadataEditorForm({
         <Modal
           title={
             generatingCategoricalColumn?.isCategorical
-              ? "Remove Categorical Column Values  "
+              ? "Remove Categorical Column Values?"
               : "Generate Categorical Column Values"
           }
           open={isCategoricalColumnModalOpen}
@@ -799,7 +799,10 @@ export default function MetadataEditorForm({
           okType={
             generatingCategoricalColumn?.isCategorical ? "danger" : "primary"
           }
-          okButtonProps={{ loading: isGeneratingCategoricalColumn }}
+          okButtonProps={{
+            loading:
+              isGeneratingCategoricalColumn || isDeletingCategoricalColumn,
+          }}
           onOk={async () => {
             if (!table || !generatingCategoricalColumn) {
               return;
