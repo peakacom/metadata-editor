@@ -1,6 +1,7 @@
 import {
   useAddRelationMutation,
   useCreateSemanticsMutation,
+  useDeleteCategoricalColumnMutation,
   useDeleteRelationMutation,
   useGenerateCategoricalColumnMutation,
   useUpdateMetadataMutation,
@@ -98,6 +99,12 @@ export default function MetadataEditorForm({
     generateCategoricalColumn,
     { isLoading: isGeneratingCategoricalColumn },
   ] = useGenerateCategoricalColumnMutation();
+
+  const [deleteCategoricalColumns, { isLoading: isDeletingCategoricalColumn }] =
+    useDeleteCategoricalColumnMutation();
+
+  const [selectedMetadataUpdateFrequency, setSelectedMetadataUpdateFrequency] =
+    useState<string>("NONE");
 
   const [generatingCategoricalColumn, setGeneratingCategoricalColumn] =
     useState<
@@ -775,8 +782,8 @@ export default function MetadataEditorForm({
         <Modal
           title={
             generatingCategoricalColumn?.isCategorical
-              ? "Remove Categorical Column Values?  "
-              : "Generate Categorical Column Values?"
+              ? "Remove Categorical Column Values?"
+              : "Generate Categorical Column Values"
           }
           open={isCategoricalColumnModalOpen}
           centered
@@ -789,47 +796,33 @@ export default function MetadataEditorForm({
           okText={
             generatingCategoricalColumn?.isCategorical ? "Remove" : "Generate"
           }
-          okType="primary"
-          okButtonProps={{ loading: isGeneratingCategoricalColumn }}
+          okType={
+            generatingCategoricalColumn?.isCategorical ? "danger" : "primary"
+          }
+          okButtonProps={{
+            loading:
+              isGeneratingCategoricalColumn || isDeletingCategoricalColumn,
+          }}
           onOk={async () => {
             if (!table || !generatingCategoricalColumn) {
               return;
             }
             if (generatingCategoricalColumn.isCategorical) {
-              setIsUpdatingMetadata(true);
               try {
-                const clonedTable = cloneDeep(table);
-                if (!clonedTable) {
-                  return;
-                }
-                const column = clonedTable.metadata.columns?.find(
-                  (column) =>
-                    column.columnName === generatingCategoricalColumn.name
-                );
-
-                if (!column) {
-                  return;
-                }
-
-                column.isCategorical = false;
-                column.categoricalValues = [];
-
-                await updateMetadata({
-                  projectId: clonedTable.metadata.projectId,
-                  catalogId: clonedTable.metadata.catalogId,
-                  schemaName: clonedTable.metadata.schemaName,
-                  tableName: clonedTable.metadata.tableName,
-                  metadata: {
-                    tableDescription: clonedTable.metadata.tableDescription,
-                    columns: clonedTable.metadata.columns,
-                    useWithAI: clonedTable.metadata.useWithAI,
-                  },
+                await deleteCategoricalColumns({
+                  projectId: table.metadata.projectId
+                    ? table.metadata.projectId
+                    : "",
+                  catalogId: table.metadata.catalogId,
+                  schemaName: table.metadata.schemaName,
+                  tableName: table.metadata.tableName,
+                  columnName: generatingCategoricalColumn.key,
                 }).unwrap();
 
                 openNotification(
                   true,
                   "Success",
-                  "Table metadata has been edited successfully."
+                  "Successfully removed categorical column values."
                 )();
               } catch (error) {
                 openNotification(
@@ -854,6 +847,7 @@ export default function MetadataEditorForm({
                   tableName: table.metadata.tableName,
                   columnName: generatingCategoricalColumn.key,
                   limit: categoricalColumnLimit,
+                  frequency: selectedMetadataUpdateFrequency,
                 }).unwrap();
 
                 openNotification(
@@ -887,6 +881,22 @@ export default function MetadataEditorForm({
                 onChange={(e) => {
                   setCategoricalColumnLimit(Number.parseInt(e.target.value));
                 }}
+              />
+              <div className="text-gray-500">Auto Update Interval</div>
+              <Select
+                className="w-full"
+                options={[
+                  { value: "NONE", label: "No auto update" },
+                  { value: "DAILY", label: "Daily update" },
+                  { value: "WEEKLY", label: "Weekly update" },
+                  { value: "MONTHLY", label: "Monthly update" },
+                ]}
+                onChange={(value) => {
+                  setSelectedMetadataUpdateFrequency(value);
+                }}
+                placeholder="Auto update interval"
+                value={selectedMetadataUpdateFrequency}
+                optionFilterProp="label"
               />
               <div className="text-gray-500">
                 {`SELECT DISTINCT ${generatingCategoricalColumn?.name} FROM ${table?.metadata.catalogQueryName}.${table?.metadata.schemaName}.${table?.metadata.tableName} LIMIT ${categoricalColumnLimit}`}
