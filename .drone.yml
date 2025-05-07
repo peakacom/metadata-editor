@@ -66,7 +66,7 @@ steps:
     environment:
       DRONE_API_URL: "drone:8080"
       DRONE_HTTP_PROTO: "http"
-      REPO_OWNER: "${DRONE_REPO_OWNER}"
+      REPO_OWNER: "code2io"
       REPO_NAME: "e2e-tests"
       DRONE_AUTH_TOKEN:
         from_secret: DRONE_AUTH_TOKEN
