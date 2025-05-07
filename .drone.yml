@@ -60,6 +60,25 @@ steps:
     depends_on:
       - image-build-push
 
+  - name: smoke-tests
+    pull: always
+    image: code2io/ci-utils:${utils_plugin_ver}
+    environment:
+      DRONE_API_URL: "drone:8080"
+      DRONE_HTTP_PROTO: "http"
+      REPO_OWNER: "${DRONE_REPO_OWNER}"
+      REPO_NAME: "e2e-tests"
+      DRONE_AUTH_TOKEN:
+        from_secret: DRONE_AUTH_TOKEN
+      BUILD_ID: "${DRONE_BUILD_NUMBER}"
+    commands:
+      - python3 /app/run-smoke-test.py
+    volumes:
+      - name: artifacts
+        path: /artifacts
+    depends_on:
+      - deploy
+
   - name: notify-success
     pull: always
     image: code2io/ci-notify:${notify_plugin_ver}
@@ -78,7 +97,7 @@ steps:
       status:
         - success
     depends_on:
-      - deploy
+      - smoke-tests
 
   - name: notify-failure
     pull: always
@@ -98,7 +117,7 @@ steps:
       status:
         - failure
     depends_on:
-      - deploy
+      - smoke-tests
 
 volumes:
   - name: gcp-ar-auth-secret
