@@ -16,7 +16,7 @@
     "ace-builds": "^1.36.5",
     "antd": "^5.22.0",
     "clsx": "^2.1.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.1",
     "lucide-react": "^0.456.0",
     "mermaid": "^11.4.1",
     "next": "14.2.27",
@@ -30,7 +30,7 @@
     "zipyai": "^1.7.38"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.13",
+    "@types/lodash": "^4.17.24",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
